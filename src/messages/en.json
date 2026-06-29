@@ -1,0 +1,12 @@
+{
+  "app": {
+    "name": "Trading Journal",
+    "tagline": "Log and analyze your crypto futures trades."
+  },
+  "scaffold": {
+    "title": "Phase 0 — Scaffold ready",
+    "description": "Next.js, Tailwind, shadcn/ui, Drizzle, Supabase, i18n and theming are configured. Ready to build Phase 1.",
+    "themeToggle": "Toggle theme",
+    "localeLabel": "Language"
+  }
+}
