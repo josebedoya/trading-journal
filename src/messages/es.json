@@ -198,7 +198,38 @@
   "dashboard": {
     "title": "Dashboard",
     "welcome": "Hola, {email}",
-    "placeholder": "Aquí irán los KPIs, equity curve, calendario y radar (próximos slices de la Fase 1)."
+    "kpis": {
+      "netPnl": "P&L neto",
+      "winRate": "Win %",
+      "profitFactor": "Profit factor",
+      "dayWinRate": "Días ganadores",
+      "avgWinLoss": "Avg win/loss",
+      "trades": "{count} operaciones",
+      "winsLosses": "{wins}G / {losses}P"
+    },
+    "radar": {
+      "title": "Trade Score",
+      "score": "Score",
+      "axes": {
+        "winRate": "Win %",
+        "profitFactor": "Profit factor",
+        "avgWinLoss": "Win/Loss",
+        "maxDrawdown": "Drawdown",
+        "recoveryFactor": "Recovery",
+        "consistency": "Consistencia"
+      }
+    },
+    "equity": {
+      "title": "Equity curve",
+      "label": "P&L acumulado",
+      "empty": "Registra operaciones para ver la equity curve."
+    },
+    "calendar": {
+      "title": "Calendario",
+      "weekTotal": "Semana"
+    },
+    "balance": { "title": "Balance de la cuenta" },
+    "recent": { "title": "Operaciones recientes" }
   },
   "scaffold": {
     "title": "Fase 0 — Scaffold listo",
