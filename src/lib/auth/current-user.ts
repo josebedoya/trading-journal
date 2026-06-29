@@ -29,3 +29,10 @@ export const getCurrentUser = cache(async () => {
 
   return { authId: user.id, email: user.email ?? profile.email, profile };
 });
+
+/** Igual que getCurrentUser pero lanza si no hay sesión (uso en server actions). */
+export async function requireUser() {
+  const user = await getCurrentUser();
+  if (!user) throw new Error("unauthorized");
+  return user;
+}

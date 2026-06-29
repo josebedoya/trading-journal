@@ -5,7 +5,46 @@
   },
   "nav": {
     "dashboard": "Dashboard",
+    "settings": "Settings",
     "signOut": "Sign out"
+  },
+  "settings": {
+    "title": "Settings"
+  },
+  "accounts": {
+    "title": "Accounts",
+    "allAccounts": "All accounts",
+    "nSelected": "{count} accounts",
+    "archived": "Archived",
+    "createFirst": "Create account",
+    "empty": "You don't have any accounts yet.",
+    "archive": "Archive",
+    "unarchive": "Reactivate",
+    "quota": "{active} / {max} active",
+    "quotaUnlimited": "{active} active (no limit)",
+    "startingBalanceLabel": "Starting balance: {amount} {currency}",
+    "fields": {
+      "name": "Name",
+      "exchange": "Exchange",
+      "currency": "Currency",
+      "startingBalance": "Starting balance"
+    },
+    "create": {
+      "title": "New account",
+      "subtitle": "Create an account to log your trades.",
+      "submit": "Create account"
+    },
+    "edit": {
+      "trigger": "Edit",
+      "title": "Edit account",
+      "submit": "Save"
+    },
+    "errors": {
+      "name_required": "Name is required.",
+      "invalid_balance": "Invalid starting balance.",
+      "quota_reached": "You reached your active accounts limit. Archive one to free a slot.",
+      "not_found": "Account not found."
+    }
   },
   "auth": {
     "title": "Sign in",

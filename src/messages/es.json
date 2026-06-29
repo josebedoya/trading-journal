@@ -5,7 +5,46 @@
   },
   "nav": {
     "dashboard": "Dashboard",
+    "settings": "Ajustes",
     "signOut": "Cerrar sesión"
+  },
+  "settings": {
+    "title": "Ajustes"
+  },
+  "accounts": {
+    "title": "Cuentas",
+    "allAccounts": "Todas las cuentas",
+    "nSelected": "{count} cuentas",
+    "archived": "Archivadas",
+    "createFirst": "Crear cuenta",
+    "empty": "Aún no tienes cuentas.",
+    "archive": "Archivar",
+    "unarchive": "Reactivar",
+    "quota": "{active} / {max} activas",
+    "quotaUnlimited": "{active} activas (sin límite)",
+    "startingBalanceLabel": "Balance inicial: {amount} {currency}",
+    "fields": {
+      "name": "Nombre",
+      "exchange": "Exchange",
+      "currency": "Moneda",
+      "startingBalance": "Balance inicial"
+    },
+    "create": {
+      "title": "Nueva cuenta",
+      "subtitle": "Crea una cuenta para registrar tus operaciones.",
+      "submit": "Crear cuenta"
+    },
+    "edit": {
+      "trigger": "Editar",
+      "title": "Editar cuenta",
+      "submit": "Guardar"
+    },
+    "errors": {
+      "name_required": "El nombre es obligatorio.",
+      "invalid_balance": "Balance inicial inválido.",
+      "quota_reached": "Alcanzaste el límite de cuentas activas. Archiva una para liberar cupo.",
+      "not_found": "Cuenta no encontrada."
+    }
   },
   "auth": {
     "title": "Iniciar sesión",
