@@ -3,6 +3,27 @@
     "name": "Trading Journal",
     "tagline": "Registra y analiza tus operaciones de futuros crypto."
   },
+  "nav": {
+    "dashboard": "Dashboard",
+    "signOut": "Cerrar sesión"
+  },
+  "auth": {
+    "title": "Iniciar sesión",
+    "subtitle": "Accede a tu trading journal.",
+    "email": "Email",
+    "password": "Contraseña",
+    "submit": "Entrar",
+    "submitting": "Entrando…",
+    "errors": {
+      "missing_credentials": "Ingresa email y contraseña.",
+      "invalid_credentials": "Email o contraseña incorrectos."
+    }
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Hola, {email}",
+    "placeholder": "Aquí irán los KPIs, equity curve, calendario y radar (próximos slices de la Fase 1)."
+  },
   "scaffold": {
     "title": "Fase 0 — Scaffold listo",
     "description": "Next.js, Tailwind, shadcn/ui, Drizzle, Supabase, i18n y theming configurados. Listo para construir la Fase 1.",
