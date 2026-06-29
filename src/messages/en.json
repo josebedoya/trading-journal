@@ -5,8 +5,117 @@
   },
   "nav": {
     "dashboard": "Dashboard",
+    "trades": "Trades",
     "settings": "Settings",
     "signOut": "Sign out"
+  },
+  "trades": {
+    "title": "Trades",
+    "new": "New trade",
+    "edit": "Edit trade",
+    "noAccounts": "You need an active account to log trades.",
+    "goToSettings": "Go to Settings",
+    "results": {
+      "win": "Win",
+      "loss": "Loss",
+      "breakeven": "Break-even"
+    },
+    "table": {
+      "empty": "No trades for the selected filters.",
+      "opened": "Opened",
+      "symbol": "Symbol",
+      "direction": "Direction",
+      "result": "Result",
+      "account": "Account",
+      "netPnl": "Net P&L",
+      "roi": "ROI",
+      "directions": { "long": "Long", "short": "Short" }
+    },
+    "filters": {
+      "from": "From",
+      "to": "To",
+      "result": "Result",
+      "allResults": "All",
+      "win": "Win",
+      "loss": "Loss",
+      "breakeven": "Break-even",
+      "apply": "Apply",
+      "clear": "Clear"
+    },
+    "form": {
+      "account": "Account",
+      "symbol": "Symbol",
+      "direction": "Direction",
+      "directions": { "long": "Long", "short": "Short" },
+      "session": "Session",
+      "sessions": {
+        "none": "No session",
+        "asia": "Asia",
+        "london": "London",
+        "newyork": "New York",
+        "overlap": "Overlap",
+        "other": "Other"
+      },
+      "openedAt": "Open date",
+      "closedAt": "Close date",
+      "entryPrice": "Entry price",
+      "exitPrice": "Exit price",
+      "quantity": "Quantity",
+      "leverage": "Leverage",
+      "grossPnl": "Gross P&L",
+      "fees": "Fees",
+      "plannedRr": "Planned R:R",
+      "realizedRr": "Realized R:R",
+      "riskAmount": "Risk ($)",
+      "setup": "Setup",
+      "noSetup": "No setup",
+      "notes": "Notes",
+      "screenshots": "Screenshots",
+      "screenshotsHint": "You can upload several images (PNG/JPG).",
+      "submitCreate": "Log trade",
+      "submitEdit": "Save changes",
+      "errors": {
+        "account_required": "Select a valid account.",
+        "symbol_required": "Symbol is required.",
+        "direction_required": "Select the direction.",
+        "opened_at_required": "Open date is required.",
+        "gross_pnl_required": "Gross P&L is required.",
+        "invalid_number": "There is an invalid numeric value.",
+        "not_found": "Trade not found."
+      }
+    },
+    "detail": {
+      "edit": "Edit",
+      "delete": "Delete",
+      "confirmDelete": "Delete this trade and its screenshots?",
+      "account": "Account",
+      "direction": "Direction",
+      "directions": { "long": "Long", "short": "Short" },
+      "session": "Session",
+      "sessions": {
+        "asia": "Asia",
+        "london": "London",
+        "newyork": "New York",
+        "overlap": "Overlap",
+        "other": "Other"
+      },
+      "opened": "Opened",
+      "closed": "Closed",
+      "holdTime": "Hold time",
+      "entryPrice": "Entry price",
+      "exitPrice": "Exit price",
+      "quantity": "Quantity",
+      "leverage": "Leverage",
+      "grossPnl": "Gross P&L",
+      "fees": "Fees",
+      "netPnl": "Net P&L",
+      "roi": "ROI",
+      "plannedRr": "Planned R:R",
+      "realizedRr": "Realized R:R",
+      "riskAmount": "Risk",
+      "notes": "Notes",
+      "screenshots": "Screenshots"
+    }
   },
   "settings": {
     "title": "Settings"

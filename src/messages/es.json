@@ -5,8 +5,117 @@
   },
   "nav": {
     "dashboard": "Dashboard",
+    "trades": "Operaciones",
     "settings": "Ajustes",
     "signOut": "Cerrar sesión"
+  },
+  "trades": {
+    "title": "Operaciones",
+    "new": "Nueva operación",
+    "edit": "Editar operación",
+    "noAccounts": "Necesitas una cuenta activa para registrar operaciones.",
+    "goToSettings": "Ir a Ajustes",
+    "results": {
+      "win": "Ganada",
+      "loss": "Perdida",
+      "breakeven": "Break-even"
+    },
+    "table": {
+      "empty": "Sin operaciones para los filtros seleccionados.",
+      "opened": "Apertura",
+      "symbol": "Activo",
+      "direction": "Dirección",
+      "result": "Resultado",
+      "account": "Cuenta",
+      "netPnl": "P&L neto",
+      "roi": "ROI",
+      "directions": { "long": "Long", "short": "Short" }
+    },
+    "filters": {
+      "from": "Desde",
+      "to": "Hasta",
+      "result": "Resultado",
+      "allResults": "Todos",
+      "win": "Ganada",
+      "loss": "Perdida",
+      "breakeven": "Break-even",
+      "apply": "Aplicar",
+      "clear": "Limpiar"
+    },
+    "form": {
+      "account": "Cuenta",
+      "symbol": "Activo",
+      "direction": "Dirección",
+      "directions": { "long": "Long", "short": "Short" },
+      "session": "Sesión",
+      "sessions": {
+        "none": "Sin sesión",
+        "asia": "Asia",
+        "london": "Londres",
+        "newyork": "Nueva York",
+        "overlap": "Overlap",
+        "other": "Otra"
+      },
+      "openedAt": "Fecha de apertura",
+      "closedAt": "Fecha de cierre",
+      "entryPrice": "Precio de entrada",
+      "exitPrice": "Precio de salida",
+      "quantity": "Cantidad",
+      "leverage": "Apalancamiento",
+      "grossPnl": "P&L bruto",
+      "fees": "Comisiones",
+      "plannedRr": "R:R planeado",
+      "realizedRr": "R:R realizado",
+      "riskAmount": "Riesgo ($)",
+      "setup": "Setup",
+      "noSetup": "Sin setup",
+      "notes": "Notas",
+      "screenshots": "Capturas",
+      "screenshotsHint": "Puedes subir varias imágenes (PNG/JPG).",
+      "submitCreate": "Registrar operación",
+      "submitEdit": "Guardar cambios",
+      "errors": {
+        "account_required": "Selecciona una cuenta válida.",
+        "symbol_required": "El activo es obligatorio.",
+        "direction_required": "Selecciona la dirección.",
+        "opened_at_required": "La fecha de apertura es obligatoria.",
+        "gross_pnl_required": "El P&L bruto es obligatorio.",
+        "invalid_number": "Hay un valor numérico inválido.",
+        "not_found": "Operación no encontrada."
+      }
+    },
+    "detail": {
+      "edit": "Editar",
+      "delete": "Eliminar",
+      "confirmDelete": "¿Eliminar esta operación y sus capturas?",
+      "account": "Cuenta",
+      "direction": "Dirección",
+      "directions": { "long": "Long", "short": "Short" },
+      "session": "Sesión",
+      "sessions": {
+        "asia": "Asia",
+        "london": "Londres",
+        "newyork": "Nueva York",
+        "overlap": "Overlap",
+        "other": "Otra"
+      },
+      "opened": "Apertura",
+      "closed": "Cierre",
+      "holdTime": "Duración",
+      "entryPrice": "Precio de entrada",
+      "exitPrice": "Precio de salida",
+      "quantity": "Cantidad",
+      "leverage": "Apalancamiento",
+      "grossPnl": "P&L bruto",
+      "fees": "Comisiones",
+      "netPnl": "P&L neto",
+      "roi": "ROI",
+      "plannedRr": "R:R planeado",
+      "realizedRr": "R:R realizado",
+      "riskAmount": "Riesgo",
+      "notes": "Notas",
+      "screenshots": "Capturas"
+    }
   },
   "settings": {
     "title": "Ajustes"
