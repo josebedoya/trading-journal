@@ -6,8 +6,36 @@
   "nav": {
     "dashboard": "Dashboard",
     "trades": "Trades",
+    "transactions": "Transactions",
     "settings": "Settings",
     "signOut": "Sign out"
+  },
+  "transactions": {
+    "title": "Transactions",
+    "new": "New transaction",
+    "submit": "Add",
+    "history": "History",
+    "empty": "No transactions.",
+    "noAccounts": "You need an active account.",
+    "delete": "Delete",
+    "account": "Account",
+    "type": "Type",
+    "types": { "deposit": "Deposit", "withdrawal": "Withdrawal" },
+    "amount": "Amount",
+    "occurredAt": "Date",
+    "note": "Note",
+    "chart": {
+      "title": "Account balance",
+      "balance": "Account balance",
+      "deposits": "Deposits/Withdrawals",
+      "empty": "Not enough data for the chart."
+    },
+    "errors": {
+      "account_required": "Select a valid account.",
+      "type_required": "Select the type.",
+      "invalid_amount": "Amount must be a positive number.",
+      "invalid_date": "Invalid date."
+    }
   },
   "trades": {
     "title": "Trades",

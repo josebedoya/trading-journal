@@ -6,8 +6,36 @@
   "nav": {
     "dashboard": "Dashboard",
     "trades": "Operaciones",
+    "transactions": "Movimientos",
     "settings": "Ajustes",
     "signOut": "Cerrar sesión"
+  },
+  "transactions": {
+    "title": "Movimientos",
+    "new": "Nuevo movimiento",
+    "submit": "Registrar",
+    "history": "Historial",
+    "empty": "Sin movimientos.",
+    "noAccounts": "Necesitas una cuenta activa.",
+    "delete": "Eliminar",
+    "account": "Cuenta",
+    "type": "Tipo",
+    "types": { "deposit": "Depósito", "withdrawal": "Retiro" },
+    "amount": "Monto",
+    "occurredAt": "Fecha",
+    "note": "Nota",
+    "chart": {
+      "title": "Balance de la cuenta",
+      "balance": "Balance de la cuenta",
+      "deposits": "Depósitos/Retiros",
+      "empty": "Sin datos suficientes para el gráfico."
+    },
+    "errors": {
+      "account_required": "Selecciona una cuenta válida.",
+      "type_required": "Selecciona el tipo.",
+      "invalid_amount": "El monto debe ser un número positivo.",
+      "invalid_date": "Fecha inválida."
+    }
   },
   "trades": {
     "title": "Operaciones",

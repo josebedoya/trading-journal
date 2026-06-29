@@ -43,6 +43,9 @@ export default async function AppLayout({
               <Link href="/trades">{t("nav.trades")}</Link>
             </Button>
             <Button variant="ghost" size="sm" asChild>
+              <Link href="/transactions">{t("nav.transactions")}</Link>
+            </Button>
+            <Button variant="ghost" size="sm" asChild>
               <Link href="/settings">{t("nav.settings")}</Link>
             </Button>
           </nav>
