@@ -146,7 +146,14 @@
     }
   },
   "settings": {
-    "title": "Settings"
+    "title": "Settings",
+    "preferences": {
+      "title": "Preferences",
+      "language": "Language",
+      "locales": { "es": "Español", "en": "English" },
+      "theme": "Theme",
+      "themes": { "light": "Light", "dark": "Dark", "system": "System" }
+    }
   },
   "accounts": {
     "title": "Accounts",

@@ -5,6 +5,7 @@ import { hasLocale, NextIntlClientProvider } from "next-intl";
 import { setRequestLocale } from "next-intl/server";
 
 import { ThemeProvider } from "@/components/providers/theme-provider";
+import { getCurrentUser } from "@/lib/auth/current-user";
 import { routing } from "@/lib/i18n/routing";
 import "../globals.css";
 
@@ -41,8 +42,11 @@ export default async function LocaleLayout({
     notFound();
   }
 
-  // Habilita rendering estático para este locale.
   setRequestLocale(locale);
+
+  // Tema inicial = preferencia guardada del usuario (users.theme); 'system' si no hay sesión.
+  const user = await getCurrentUser();
+  const defaultTheme = user?.profile.theme ?? "system";
 
   return (
     <html
@@ -53,7 +57,7 @@ export default async function LocaleLayout({
       <body className="min-h-full flex flex-col">
         <ThemeProvider
           attribute="class"
-          defaultTheme="system"
+          defaultTheme={defaultTheme}
           enableSystem
           disableTransitionOnChange
         >

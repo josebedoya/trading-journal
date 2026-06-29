@@ -1,6 +1,7 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import { AccountsManager } from "@/components/organisms/accounts-manager";
+import { PreferencesPanel } from "@/components/organisms/preferences-panel";
 import { requireUser } from "@/lib/auth/current-user";
 import { getAccounts } from "@/server/queries/accounts";
 
@@ -20,6 +21,11 @@ export default async function SettingsPage({
   return (
     <main className="mx-auto max-w-3xl px-6 py-10">
       <h1 className="text-2xl font-semibold tracking-tight">{t("title")}</h1>
+
+      <div className="mt-8">
+        <PreferencesPanel initialTheme={user.profile.theme} />
+      </div>
+
       <div className="mt-8">
         <AccountsManager
           accounts={accounts.map((a) => ({

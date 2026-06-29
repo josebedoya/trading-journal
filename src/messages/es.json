@@ -146,7 +146,14 @@
     }
   },
   "settings": {
-    "title": "Ajustes"
+    "title": "Ajustes",
+    "preferences": {
+      "title": "Preferencias",
+      "language": "Idioma",
+      "locales": { "es": "Español", "en": "English" },
+      "theme": "Tema",
+      "themes": { "light": "Claro", "dark": "Oscuro", "system": "Sistema" }
+    }
   },
   "accounts": {
     "title": "Cuentas",

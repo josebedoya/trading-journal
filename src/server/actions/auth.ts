@@ -1,9 +1,12 @@
 "use server";
 
+import { eq } from "drizzle-orm";
 import { redirect } from "next/navigation";
 
 import { createSupabaseServerClient } from "@/lib/auth/server";
-import { defaultLocale, type Locale } from "@/lib/i18n/routing";
+import { db } from "@/lib/db/client";
+import { defaultLocale, routing, type Locale } from "@/lib/i18n/routing";
+import { users } from "@/lib/db/schema";
 
 export type AuthState = { error: string | null };
 
@@ -21,13 +24,28 @@ export async function signIn(
   }
 
   const supabase = await createSupabaseServerClient();
-  const { error } = await supabase.auth.signInWithPassword({ email, password });
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  });
 
-  if (error) {
+  if (error || !data.user) {
     return { error: "invalid_credentials" };
   }
 
-  redirect(`/${locale}/dashboard`);
+  // Redirige al idioma preferido del usuario si está guardado.
+  const [profile] = await db
+    .select({ locale: users.locale })
+    .from(users)
+    .where(eq(users.id, data.user.id))
+    .limit(1);
+  const target = routing.locales.includes(
+    profile?.locale as (typeof routing.locales)[number],
+  )
+    ? (profile!.locale as Locale)
+    : locale;
+
+  redirect(`/${target}/dashboard`);
 }
 
 export async function signOut(locale: Locale = defaultLocale) {
