@@ -8,9 +8,10 @@ import { z } from "zod";
  * - Coerción para inputs que llegan como string desde el form
  *   (`z.coerce.number()`, `z.coerce.date()`).
  * - Optatividad espejada del schema Drizzle (`trades`) y del formulario.
- *   Requeridos: accountId, symbol, direction, openedAt, grossPnl.
- *   Opcionales:  closedAt, entryPrice, exitPrice, quantity, leverage,
- *                plannedRr, realizedRr, riskAmount, session, setupId, notes.
+ *   Requeridos: accountId, symbol, direction, openedAt, entryPrice, exitPrice,
+ *               grossPnl.
+ *   Opcionales:  closedAt, quantity, leverage, plannedRr, realizedRr,
+ *                riskAmount, session, setupId, notes.
  *   `fees` es opcional con default 0 (igual que `numeric notNull default '0'`).
  * - `result` y `netPnl` NO viven aquí: son DERIVADOS en el server action
  *   (net = gross − fees; result = signo(net)). El form no los captura.
@@ -58,8 +59,8 @@ export const tradeSchema = z.object({
   openedAt: z.coerce.date({ error: "validation.invalidDate" }),
   closedAt: optionalDate,
 
-  entryPrice: optionalNumber,
-  exitPrice: optionalNumber,
+  entryPrice: requiredNumber,
+  exitPrice: requiredNumber,
   quantity: optionalNumber,
   leverage: optionalNumber,
 
