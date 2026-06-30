@@ -245,7 +245,10 @@
     },
     "calendar": {
       "title": "Calendario",
-      "weekTotal": "Semana"
+      "monthlyStats": "Stats del mes:",
+      "week": "Semana {number}",
+      "tradesCount": "{count, plural, one {# operación} other {# operaciones}}",
+      "daysCount": "{count, plural, one {# día} other {# días}}"
     },
     "balance": { "title": "Balance de la cuenta" },
     "recent": { "title": "Operaciones recientes" }

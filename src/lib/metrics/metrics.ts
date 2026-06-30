@@ -15,6 +15,8 @@ export type MetricTrade = {
 };
 
 export type DailyNet = { day: string; net: number };
+/** Agregado por día para el calendario: P&L, nº de trades y nº de ganados. */
+export type DailyStat = { day: string; net: number; trades: number; wins: number };
 export type CurvePoint = { label: string; value: number };
 
 export type Metrics = {
@@ -54,6 +56,20 @@ export function dailyNet(trades: MetricTrade[]): DailyNet[] {
   return [...byDay.entries()]
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([day, net]) => ({ day, net }));
+}
+
+/** Stats por día (net, nº de trades, nº de ganados) — para el calendario. */
+export function dailyStats(trades: MetricTrade[]): DailyStat[] {
+  const byDay = new Map<string, DailyStat>();
+  for (const t of trades) {
+    const k = dayKey(t.date);
+    const cur = byDay.get(k) ?? { day: k, net: 0, trades: 0, wins: 0 };
+    cur.net += t.netPnl;
+    cur.trades += 1;
+    if (t.result === "win") cur.wins += 1;
+    byDay.set(k, cur);
+  }
+  return [...byDay.values()].sort((a, b) => a.day.localeCompare(b.day));
 }
 
 /** Equity curve: P&L neto acumulado por día. */

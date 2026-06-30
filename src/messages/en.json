@@ -245,7 +245,10 @@
     },
     "calendar": {
       "title": "Calendar",
-      "weekTotal": "Week"
+      "monthlyStats": "Monthly stats:",
+      "week": "Week {number}",
+      "tradesCount": "{count, plural, one {# trade} other {# trades}}",
+      "daysCount": "{count, plural, one {# day} other {# days}}"
     },
     "balance": { "title": "Account balance" },
     "recent": { "title": "Recent trades" }

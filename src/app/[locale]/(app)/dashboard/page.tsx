@@ -12,7 +12,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { computeMetrics, dailyNet, equityCurve } from "@/lib/metrics/metrics";
+import { computeMetrics, dailyStats, equityCurve } from "@/lib/metrics/metrics";
 import { tradeScore } from "@/lib/metrics/trade-score";
 import { getCurrentUser } from "@/lib/auth/current-user";
 import { getTrades } from "@/server/queries/trades";
@@ -39,7 +39,7 @@ export default async function DashboardPage({
   const metrics = computeMetrics(metricTrades);
   const score = tradeScore(metrics);
   const curve = equityCurve(metricTrades);
-  const daily = dailyNet(metricTrades);
+  const daily = dailyStats(metricTrades);
 
   return (
     <main className="mx-auto max-w-6xl space-y-6 px-6 py-10">
