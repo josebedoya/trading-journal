@@ -1,6 +1,7 @@
 import { getTranslations } from "next-intl/server";
 
 import type { DailyNet } from "@/lib/metrics/metrics";
+import { formatMoney } from "@/lib/money";
 import { cn } from "@/lib/utils";
 
 type Cell = { day: number; key: string; net: number | null } | null;
@@ -26,11 +27,9 @@ function buildMonth(year: number, month: number, byDay: Map<string, number>) {
 
 export async function TradeCalendar({
   daily,
-  currency,
   locale,
 }: {
   daily: DailyNet[];
-  currency: string;
   locale: string;
 }) {
   const t = await getTranslations("dashboard.calendar");
@@ -56,8 +55,6 @@ export async function TradeCalendar({
     weekdayFmt.format(new Date(Date.UTC(2024, 0, 1 + i))),
   );
 
-  const fmtNet = (n: number) =>
-    `${n >= 0 ? "+" : ""}${n.toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
 
   return (
     <div className="space-y-3">
@@ -81,8 +78,6 @@ export async function TradeCalendar({
               week={week}
               weekTotal={weekTotal}
               hasData={hasData}
-              fmtNet={fmtNet}
-              currency={currency}
             />
           );
         })}
@@ -95,14 +90,10 @@ function WeekRow({
   week,
   weekTotal,
   hasData,
-  fmtNet,
-  currency,
 }: {
   week: Cell[];
   weekTotal: number;
   hasData: boolean;
-  fmtNet: (n: number) => string;
-  currency: string;
 }) {
   return (
     <>
@@ -126,7 +117,7 @@ function WeekRow({
                     cell.net > 0 ? "text-win" : cell.net < 0 ? "text-loss" : "",
                   )}
                 >
-                  {fmtNet(cell.net)}
+                  {formatMoney(cell.net)}
                 </span>
               )}
             </>
@@ -146,7 +137,7 @@ function WeekRow({
               weekTotal > 0 ? "text-win" : weekTotal < 0 ? "text-loss" : "",
             )}
           >
-            {fmtNet(weekTotal)}
+            {formatMoney(weekTotal)}
           </span>
         )}
       </div>

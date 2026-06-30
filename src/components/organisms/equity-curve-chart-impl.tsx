@@ -11,15 +11,10 @@ import {
   YAxis,
 } from "recharts";
 
+import { formatMoney } from "@/lib/money";
 import type { CurvePoint } from "@/lib/metrics/metrics";
 
-export default function EquityCurveChart({
-  points,
-  currency,
-}: {
-  points: CurvePoint[];
-  currency: string;
-}) {
+export default function EquityCurveChart({ points }: { points: CurvePoint[] }) {
   const t = useTranslations("dashboard.equity");
 
   if (points.length < 2) {
@@ -52,12 +47,10 @@ export default function EquityCurveChart({
             tickLine={false}
             axisLine={{ stroke: "var(--border)" }}
             width={64}
-            tickFormatter={(v) => Number(v).toLocaleString()}
+            tickFormatter={(v) => `$${Number(v).toLocaleString("en-US")}`}
           />
           <Tooltip
-            formatter={(v) =>
-              `${Number(v).toLocaleString(undefined, { maximumFractionDigits: 2 })}`
-            }
+            formatter={(v) => formatMoney(Number(v))}
             contentStyle={{
               background: "var(--popover)",
               border: "1px solid var(--border)",

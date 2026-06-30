@@ -177,7 +177,7 @@
     "unarchive": "Reactivar",
     "quota": "{active} / {max} activas",
     "quotaUnlimited": "{active} activas (sin límite)",
-    "startingBalanceLabel": "Balance inicial: {amount} {currency}",
+    "startingBalanceLabel": "Balance inicial: {amount}",
     "fields": {
       "name": "Nombre",
       "exchange": "Exchange",

@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { formatMoney } from "@/lib/money";
 import type { AccountState } from "@/server/actions/accounts";
 
 type FormAction = (
@@ -264,8 +265,7 @@ export function AccountsManager({
                 />
                 <p className="text-xs text-muted-foreground">
                   {t("startingBalanceLabel", {
-                    amount: a.startingBalance,
-                    currency: a.currency,
+                    amount: formatMoney(a.startingBalance),
                   })}
                 </p>
               </div>

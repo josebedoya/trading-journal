@@ -32,3 +32,18 @@ export function signOfMoney(value: string): -1 | 0 | 1 {
   const s = toScaled(value);
   return s > 0n ? 1 : s < 0n ? -1 : 0;
 }
+
+/**
+ * Formato de display de dinero: símbolo `$`, 2 decimales y separador de miles.
+ * Positivo → `$120.00`; negativo → `-$20.50`; cero → `$0.00`.
+ * El signo va antes del `$`. No depende del locale (estilo $ = en-US).
+ */
+export function formatMoney(value: string | number): string {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return "—";
+  const abs = Math.abs(n).toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+  return `${n < 0 ? "-" : ""}$${abs}`;
+}

@@ -12,15 +12,10 @@ import {
   YAxis,
 } from "recharts";
 
+import { formatMoney } from "@/lib/money";
 import type { BalancePoint } from "@/server/queries/transactions";
 
-export default function AccountBalanceChart({
-  points,
-  currency,
-}: {
-  points: BalancePoint[];
-  currency: string;
-}) {
+export default function AccountBalanceChart({ points }: { points: BalancePoint[] }) {
   const t = useTranslations("transactions.chart");
 
   if (points.length < 2) {
@@ -30,9 +25,6 @@ export default function AccountBalanceChart({
       </p>
     );
   }
-
-  const fmt = (v: number) =>
-    `${v.toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
 
   return (
     <div className="h-72 w-full">
@@ -50,10 +42,10 @@ export default function AccountBalanceChart({
             tickLine={false}
             axisLine={{ stroke: "var(--border)" }}
             width={70}
-            tickFormatter={(v) => Number(v).toLocaleString()}
+            tickFormatter={(v) => `$${Number(v).toLocaleString("en-US")}`}
           />
           <Tooltip
-            formatter={(v) => fmt(Number(v))}
+            formatter={(v) => formatMoney(Number(v))}
             contentStyle={{
               background: "var(--popover)",
               border: "1px solid var(--border)",

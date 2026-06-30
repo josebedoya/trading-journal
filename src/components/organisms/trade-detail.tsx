@@ -6,6 +6,7 @@ import { ResultBadge } from "@/components/molecules/result-badge";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/lib/i18n/navigation";
 import { holdTimeMs, roi } from "@/lib/metrics/trade";
+import { formatMoney } from "@/lib/money";
 import type { accounts, trades } from "@/lib/db/schema";
 
 type Trade = typeof trades.$inferSelect;
@@ -36,7 +37,6 @@ export async function TradeDetail({
     timeStyle: "short",
   });
   const r = roi(trade.netPnl, trade.entryPrice, trade.quantity);
-  const cur = account.currency;
 
   const rows: [string, string][] = [
     [t("account"), account.name],
@@ -45,17 +45,17 @@ export async function TradeDetail({
     [t("opened"), dateFmt.format(new Date(trade.openedAt))],
     [t("closed"), trade.closedAt ? dateFmt.format(new Date(trade.closedAt)) : "—"],
     [t("holdTime"), fmtHold(holdTimeMs(trade.openedAt, trade.closedAt))],
-    [t("entryPrice"), trade.entryPrice ?? "—"],
-    [t("exitPrice"), trade.exitPrice ?? "—"],
+    [t("entryPrice"), trade.entryPrice ? formatMoney(trade.entryPrice) : "—"],
+    [t("exitPrice"), trade.exitPrice ? formatMoney(trade.exitPrice) : "—"],
     [t("quantity"), trade.quantity ?? "—"],
     [t("leverage"), trade.leverage ? `${trade.leverage}x` : "—"],
-    [t("grossPnl"), `${trade.grossPnl} ${cur}`],
-    [t("fees"), `${trade.fees} ${cur}`],
-    [t("netPnl"), `${trade.netPnl} ${cur}`],
+    [t("grossPnl"), formatMoney(trade.grossPnl)],
+    [t("fees"), formatMoney(trade.fees)],
+    [t("netPnl"), formatMoney(trade.netPnl)],
     [t("roi"), r === null ? "—" : `${(r * 100).toFixed(2)}%`],
     [t("plannedRr"), trade.plannedRr ?? "—"],
     [t("realizedRr"), trade.realizedRr ?? "—"],
-    [t("riskAmount"), trade.riskAmount ? `${trade.riskAmount} ${cur}` : "—"],
+    [t("riskAmount"), trade.riskAmount ? formatMoney(trade.riskAmount) : "—"],
   ];
 
   return (

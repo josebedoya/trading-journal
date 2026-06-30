@@ -12,9 +12,6 @@ const Impl = dynamic(() => import("./equity-curve-chart-impl"), {
   ),
 });
 
-export function EquityCurveChart(props: {
-  points: CurvePoint[];
-  currency: string;
-}) {
+export function EquityCurveChart(props: { points: CurvePoint[] }) {
   return <Impl {...props} />;
 }

@@ -12,9 +12,6 @@ const Impl = dynamic(() => import("./account-balance-chart-impl"), {
   ),
 });
 
-export function AccountBalanceChart(props: {
-  points: BalancePoint[];
-  currency: string;
-}) {
+export function AccountBalanceChart(props: { points: BalancePoint[] }) {
   return <Impl {...props} />;
 }

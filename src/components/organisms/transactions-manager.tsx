@@ -21,6 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { formatMoney } from "@/lib/money";
 import type { TransactionState } from "@/server/actions/transactions";
 
 type CreateAction = (
@@ -182,8 +183,11 @@ export function TransactionsManager({
                       : "font-medium text-loss"
                   }
                 >
-                  {tx.type === "deposit" ? "+" : "−"}
-                  {Number(tx.amount).toLocaleString()} {tx.currency}
+                  {formatMoney(
+                    tx.type === "deposit"
+                      ? Number(tx.amount)
+                      : -Number(tx.amount),
+                  )}
                 </span>
                 <span className="text-muted-foreground">
                   {t(`types.${tx.type}`)} · {tx.accountName} ·{" "}

@@ -40,7 +40,6 @@ export default async function DashboardPage({
   const score = tradeScore(metrics);
   const curve = equityCurve(metricTrades);
   const daily = dailyNet(metricTrades);
-  const currency = balance.currency;
 
   return (
     <main className="mx-auto max-w-6xl space-y-6 px-6 py-10">
@@ -51,7 +50,7 @@ export default async function DashboardPage({
         </p>
       </div>
 
-      <KpiCardRow metrics={metrics} currency={currency} />
+      <KpiCardRow metrics={metrics} />
 
       <div className="grid gap-6 lg:grid-cols-3">
         <Card className="lg:col-span-1">
@@ -67,7 +66,7 @@ export default async function DashboardPage({
             <CardTitle>{t("equity.title")}</CardTitle>
           </CardHeader>
           <CardContent>
-            <EquityCurveChart points={curve} currency={currency} />
+            <EquityCurveChart points={curve} />
           </CardContent>
         </Card>
       </div>
@@ -77,7 +76,7 @@ export default async function DashboardPage({
           <CardTitle>{t("calendar.title")}</CardTitle>
         </CardHeader>
         <CardContent>
-          <TradeCalendar daily={daily} currency={currency} locale={locale} />
+          <TradeCalendar daily={daily} locale={locale} />
         </CardContent>
       </Card>
 
@@ -86,7 +85,7 @@ export default async function DashboardPage({
           <CardTitle>{t("balance.title")}</CardTitle>
         </CardHeader>
         <CardContent>
-          <AccountBalanceChart points={balance.points} currency={currency} />
+          <AccountBalanceChart points={balance.points} />
         </CardContent>
       </Card>
 

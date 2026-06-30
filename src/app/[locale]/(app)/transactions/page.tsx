@@ -43,7 +43,7 @@ export default async function TransactionsPage({
           <CardTitle>{t("chart.title")}</CardTitle>
         </CardHeader>
         <CardContent>
-          <AccountBalanceChart points={series.points} currency={series.currency} />
+          <AccountBalanceChart points={series.points} />
         </CardContent>
       </Card>
 

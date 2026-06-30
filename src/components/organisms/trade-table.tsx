@@ -11,13 +11,8 @@ import {
 } from "@/components/ui/table";
 import { Link } from "@/lib/i18n/navigation";
 import { roi } from "@/lib/metrics/trade";
+import { formatMoney } from "@/lib/money";
 import type { TradeListItem } from "@/server/queries/trades";
-
-function money(value: string, currency: string) {
-  const n = Number(value);
-  const sign = n > 0 ? "+" : "";
-  return `${sign}${n.toFixed(2)}`;
-}
 
 function pnlClass(value: string) {
   const n = Number(value);
@@ -82,7 +77,7 @@ export async function TradeTable({
                 {tr.accountName}
               </TableCell>
               <TableCell className={`text-right tabular-nums ${pnlClass(tr.netPnl)}`}>
-                {money(tr.netPnl, tr.currency)}
+                {formatMoney(tr.netPnl)}
               </TableCell>
               <TableCell className="text-right tabular-nums">
                 {r === null ? "—" : `${(r * 100).toFixed(2)}%`}
