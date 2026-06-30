@@ -3,18 +3,38 @@
  * Las métricas agregadas de portafolio llegan en el slice 6.
  */
 
-/** ROI = net_pnl / (entry_price × quantity). null si no hay base válida. */
-export function roi(
-  netPnl: string | number,
+/**
+ * Return % (movimiento de precio, bruto): no depende de quantity.
+ * long: (exit − entry)/entry · short: (entry − exit)/entry.
+ * Devuelve fracción (0.012 = 1.2%) o null si falta entry/exit o entry = 0.
+ */
+export function returnPct(
+  direction: "long" | "short",
   entryPrice: string | number | null,
-  quantity: string | number | null,
+  exitPrice: string | number | null,
+): number | null {
+  const entry = entryPrice == null ? NaN : Number(entryPrice);
+  const exit = exitPrice == null ? NaN : Number(exitPrice);
+  if (!Number.isFinite(entry) || !Number.isFinite(exit) || entry === 0) {
+    return null;
+  }
+  return direction === "long" ? (exit - entry) / entry : (entry - exit) / entry;
+}
+
+/**
+ * R-múltiplo realizado (neto): net_pnl / risk_amount. null si no hay riesgo
+ * válido (falta o 0) — sin romper la división por cero.
+ */
+export function realizedR(
+  netPnl: string | number,
+  riskAmount: string | number | null,
 ): number | null {
   const net = Number(netPnl);
-  const entry = entryPrice == null ? NaN : Number(entryPrice);
-  const qty = quantity == null ? NaN : Number(quantity);
-  const base = entry * qty;
-  if (!Number.isFinite(net) || !Number.isFinite(base) || base === 0) return null;
-  return net / base;
+  const risk = riskAmount == null ? NaN : Math.abs(Number(riskAmount));
+  if (!Number.isFinite(net) || !Number.isFinite(risk) || risk === 0) {
+    return null;
+  }
+  return net / risk;
 }
 
 /** Duración de la operación en ms (null si falta alguna fecha). */

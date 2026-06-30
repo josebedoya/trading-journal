@@ -65,11 +65,8 @@ export type TradeDefaults = {
   closedAt: Date | null;
   entryPrice: string | null;
   exitPrice: string | null;
-  quantity: string | null;
-  leverage: string | null;
   grossPnl: string;
   fees: string;
-  plannedRr: string | null;
   realizedRr: string | null;
   riskAmount: string | null;
   session: string | null;
@@ -102,11 +99,8 @@ function buildDefaults(
       closedAt: toLocalInput(trade.closedAt),
       entryPrice: trade.entryPrice ?? "",
       exitPrice: trade.exitPrice ?? "",
-      quantity: trade.quantity ?? "",
-      leverage: trade.leverage ?? "",
       grossPnl: trade.grossPnl,
       fees: trade.fees,
-      plannedRr: trade.plannedRr ?? "",
       realizedRr: trade.realizedRr ?? "",
       riskAmount: trade.riskAmount ?? "",
       session: trade.session ?? "none",
@@ -122,11 +116,8 @@ function buildDefaults(
     closedAt: "",
     entryPrice: "",
     exitPrice: "",
-    quantity: "",
-    leverage: "",
     grossPnl: "",
     fees: "0",
-    plannedRr: "",
     realizedRr: "",
     riskAmount: "",
     session: "none",
@@ -293,11 +284,8 @@ export function TradeForm({
             <TextField name="closedAt" label={t("closedAt")} type="datetime-local" />
             <TextField name="entryPrice" label={t("entryPrice")} />
             <TextField name="exitPrice" label={t("exitPrice")} />
-            <TextField name="quantity" label={t("quantity")} />
-            <TextField name="leverage" label={t("leverage")} />
             <TextField name="grossPnl" label={t("grossPnl")} />
             <TextField name="fees" label={t("fees")} />
-            <TextField name="plannedRr" label={t("plannedRr")} />
             <TextField name="realizedRr" label={t("realizedRr")} />
             <TextField name="riskAmount" label={t("riskAmount")} />
             {setups.length > 0 && (

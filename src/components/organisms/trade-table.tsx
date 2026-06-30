@@ -10,7 +10,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Link } from "@/lib/i18n/navigation";
-import { roi } from "@/lib/metrics/trade";
+import { realizedR, returnPct } from "@/lib/metrics/trade";
 import { formatMoney } from "@/lib/money";
 import type { TradeListItem } from "@/server/queries/trades";
 
@@ -18,6 +18,23 @@ function pnlClass(value: string) {
   const n = Number(value);
   if (n > 0) return "text-win";
   if (n < 0) return "text-loss";
+  return "text-muted-foreground";
+}
+
+/** R-múltiplo: "2.4R", "-1R", "—". */
+export function formatR(r: number | null) {
+  if (r === null) return "—";
+  return `${r.toFixed(1).replace(/\.0$/, "")}R`;
+}
+
+export function formatReturnPct(p: number | null) {
+  return p === null ? "—" : `${(p * 100).toFixed(2)}%`;
+}
+
+export function rClass(r: number | null) {
+  if (r === null) return "text-muted-foreground";
+  if (r > 0) return "text-win";
+  if (r < 0) return "text-loss";
   return "text-muted-foreground";
 }
 
@@ -52,12 +69,14 @@ export async function TradeTable({
           <TableHead>{t("result")}</TableHead>
           <TableHead>{t("account")}</TableHead>
           <TableHead className="text-right">{t("netPnl")}</TableHead>
-          <TableHead className="text-right">{t("roi")}</TableHead>
+          <TableHead className="text-right">{t("r")}</TableHead>
+          <TableHead className="text-right">{t("returnPct")}</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
         {trades.map((tr) => {
-          const r = roi(tr.netPnl, tr.entryPrice, tr.quantity);
+          const r = realizedR(tr.netPnl, tr.riskAmount);
+          const ret = returnPct(tr.direction, tr.entryPrice, tr.exitPrice);
           return (
             <TableRow key={tr.id} className="cursor-pointer">
               <TableCell>
@@ -79,8 +98,11 @@ export async function TradeTable({
               <TableCell className={`text-right tabular-nums ${pnlClass(tr.netPnl)}`}>
                 {formatMoney(tr.netPnl)}
               </TableCell>
-              <TableCell className="text-right tabular-nums">
-                {r === null ? "—" : `${(r * 100).toFixed(2)}%`}
+              <TableCell className={`text-right font-medium tabular-nums ${rClass(r)}`}>
+                {formatR(r)}
+              </TableCell>
+              <TableCell className="text-right tabular-nums text-muted-foreground">
+                {formatReturnPct(ret)}
               </TableCell>
             </TableRow>
           );

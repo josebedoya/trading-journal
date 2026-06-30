@@ -64,7 +64,8 @@
       "result": "Result",
       "account": "Account",
       "netPnl": "Net P&L",
-      "roi": "ROI",
+      "r": "R",
+      "returnPct": "Return %",
       "directions": { "long": "Long", "short": "Short" }
     },
     "filters": {
@@ -147,7 +148,7 @@
       "grossPnl": "Gross P&L",
       "fees": "Fees",
       "netPnl": "Net P&L",
-      "roi": "ROI",
+      "returnPct": "Return %",
       "plannedRr": "Planned R:R",
       "realizedRr": "Realized R:R",
       "riskAmount": "Risk",

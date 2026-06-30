@@ -3,9 +3,14 @@ import { getTranslations } from "next-intl/server";
 import { DeleteTradeButton } from "@/components/molecules/delete-trade-button";
 import { ImageThumb } from "@/components/molecules/image-thumb";
 import { ResultBadge } from "@/components/molecules/result-badge";
+import {
+  formatR,
+  formatReturnPct,
+  rClass,
+} from "@/components/organisms/trade-table";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/lib/i18n/navigation";
-import { holdTimeMs, roi } from "@/lib/metrics/trade";
+import { holdTimeMs, realizedR, returnPct } from "@/lib/metrics/trade";
 import { formatMoney } from "@/lib/money";
 import type { accounts, trades } from "@/lib/db/schema";
 
@@ -36,7 +41,8 @@ export async function TradeDetail({
     dateStyle: "medium",
     timeStyle: "short",
   });
-  const r = roi(trade.netPnl, trade.entryPrice, trade.quantity);
+  const r = realizedR(trade.netPnl, trade.riskAmount);
+  const ret = returnPct(trade.direction, trade.entryPrice, trade.exitPrice);
 
   const rows: [string, string][] = [
     [t("account"), account.name],
@@ -47,13 +53,10 @@ export async function TradeDetail({
     [t("holdTime"), fmtHold(holdTimeMs(trade.openedAt, trade.closedAt))],
     [t("entryPrice"), trade.entryPrice ? formatMoney(trade.entryPrice) : "—"],
     [t("exitPrice"), trade.exitPrice ? formatMoney(trade.exitPrice) : "—"],
-    [t("quantity"), trade.quantity ?? "—"],
-    [t("leverage"), trade.leverage ? `${trade.leverage}x` : "—"],
+    [t("returnPct"), formatReturnPct(ret)],
     [t("grossPnl"), formatMoney(trade.grossPnl)],
     [t("fees"), formatMoney(trade.fees)],
     [t("netPnl"), formatMoney(trade.netPnl)],
-    [t("roi"), r === null ? "—" : `${(r * 100).toFixed(2)}%`],
-    [t("plannedRr"), trade.plannedRr ?? "—"],
     [t("realizedRr"), trade.realizedRr ?? "—"],
     [t("riskAmount"), trade.riskAmount ? formatMoney(trade.riskAmount) : "—"],
   ];
@@ -66,6 +69,9 @@ export async function TradeDetail({
             {trade.symbol}
           </h1>
           <ResultBadge result={trade.result} />
+          <span className={`text-xl font-semibold tabular-nums ${rClass(r)}`}>
+            {formatR(r)}
+          </span>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" asChild>

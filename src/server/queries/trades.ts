@@ -26,7 +26,7 @@ export type TradeListItem = {
   closedAt: Date | null;
   entryPrice: string | null;
   exitPrice: string | null;
-  quantity: string | null;
+  riskAmount: string | null;
   netPnl: string;
   accountName: string;
   currency: string;
@@ -57,7 +57,7 @@ export async function getTrades(
       closedAt: trades.closedAt,
       entryPrice: trades.entryPrice,
       exitPrice: trades.exitPrice,
-      quantity: trades.quantity,
+      riskAmount: trades.riskAmount,
       netPnl: trades.netPnl,
       accountName: accounts.name,
       currency: accounts.currency,

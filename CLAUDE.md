@@ -134,12 +134,12 @@ Todo se llavea por `account_id`; la cuenta cuelga del usuario. Las métricas de 
 | closed_at | timestamptz | fecha+hora de salida |
 | entry_price | numeric | |
 | exit_price | numeric | |
-| quantity | numeric | tamaño / contratos |
-| leverage | numeric | nullable (futuros) |
+| quantity | numeric | legacy, nullable — ya no se captura en el form |
+| leverage | numeric | legacy, nullable — ya no se captura en el form |
 | fees | numeric | default 0 |
 | gross_pnl | numeric | |
 | net_pnl | numeric | gross_pnl − fees |
-| planned_rr | numeric | nullable |
+| planned_rr | numeric | legacy, nullable — ya no se captura en el form |
 | realized_rr | numeric | nullable |
 | risk_amount | numeric | $ arriesgado, nullable |
 | session | enum('asia','london','newyork','overlap','other') | |
@@ -148,7 +148,12 @@ Todo se llavea por `account_id`; la cuenta cuelga del usuario. Las métricas de 
 | notes | text | |
 | created_at / updated_at | timestamptz | |
 
-Derivados (calculados, no almacenados): `hold_time = closed_at − opened_at`, `roi = net_pnl / (entry_price × quantity)`.
+Derivados (calculados, no almacenados):
+- `hold_time = closed_at − opened_at`
+- `return_pct` (movimiento de precio, bruto; no depende de quantity): long `(exit − entry)/entry`, short `(entry − exit)/entry`.
+- `realized_r` (R-múltiplo realizado, neto; **métrica destacada**): `net_pnl / risk_amount`. Si `risk_amount` falta o es 0 → no se muestra (protección div/0).
+
+> El ROI por quantity quedó **deprecado** (se reemplazó por `realized_r` + `return_pct`).
 
 ### transactions  (depósitos / retiros — SEPARADO de trades)
 | campo | tipo | notas |
@@ -295,7 +300,7 @@ Capas presentacionales (atoms/molecules/organisms) sin BD ni server actions: rec
 ## 8. Funcionalidades (mapeadas a TradeZella)
 
 - **Dashboard**: `KpiCardRow` + `PerformanceRadar` (Trade Score) + `ProgressHeatmap` + `EquityCurveChart` + `TradeCalendar` (totales semanales) + `AccountBalanceChart` + recent trades.
-- **Trades**: tabla (open/close date, symbol, status, entry/exit, net P&L, ROI) + alta/edición manual con subida de capturas + filtros por periodo/resultado/cuenta.
+- **Trades**: tabla (open/close date, symbol, status, entry/exit, net P&L, **R realizado** destacado y **Return %** secundario) + alta/edición manual con subida de capturas + filtros por periodo/resultado/cuenta. El formulario captura entry/exit (requeridos), gross P&L, fees, R:R realizado, riesgo, sesión, setup y notas (quantity, leverage y R:R planeado fueron removidos).
 - **Trade detail**: stats del trade + notas + capturas (+ gráfico, fase posterior).
 - **Start My Day**: prep diario con plantilla + `PreTradeEvaluator` + checklist diario que alimenta el progress tracker.
 - **Daily Journal / Notebook**: entradas por día con plantillas, carpetas y tags.
