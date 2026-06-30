@@ -3,6 +3,14 @@
     "name": "Trading Journal",
     "tagline": "Log and analyze your crypto futures trades."
   },
+  "validation": {
+    "required": "This field is required.",
+    "invalidOption": "Invalid option.",
+    "invalidNumber": "Must be a valid number.",
+    "invalidDate": "Invalid date.",
+    "invalidId": "Invalid identifier.",
+    "notOwned": "The selected account is not valid."
+  },
   "nav": {
     "dashboard": "Dashboard",
     "trades": "Trades",
@@ -103,6 +111,7 @@
       "screenshotsHint": "You can upload several images (PNG/JPG).",
       "submitCreate": "Log trade",
       "submitEdit": "Save changes",
+      "submitError": "Could not save the trade. Please try again.",
       "errors": {
         "account_required": "Select a valid account.",
         "symbol_required": "Symbol is required.",

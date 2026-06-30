@@ -27,13 +27,12 @@ export default async function EditTradePage({
       <div className="mt-8">
         <TradeForm
           mode="edit"
-          action={updateTrade}
+          action={updateTrade.bind(null, tr.id)}
           accounts={accounts
             .filter((a) => a.status === "active" || a.id === tr.accountId)
             .map((a) => ({ id: a.id, name: a.name }))}
           setups={setups}
           trade={{
-            id: tr.id,
             accountId: tr.accountId,
             symbol: tr.symbol,
             direction: tr.direction,

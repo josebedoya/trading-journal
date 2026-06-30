@@ -3,6 +3,14 @@
     "name": "Trading Journal",
     "tagline": "Registra y analiza tus operaciones de futuros crypto."
   },
+  "validation": {
+    "required": "Este campo es obligatorio.",
+    "invalidOption": "Opción inválida.",
+    "invalidNumber": "Debe ser un número válido.",
+    "invalidDate": "Fecha inválida.",
+    "invalidId": "Identificador inválido.",
+    "notOwned": "La cuenta seleccionada no es válida."
+  },
   "nav": {
     "dashboard": "Dashboard",
     "trades": "Operaciones",
@@ -103,6 +111,7 @@
       "screenshotsHint": "Puedes subir varias imágenes (PNG/JPG).",
       "submitCreate": "Registrar operación",
       "submitEdit": "Guardar cambios",
+      "submitError": "No se pudo guardar la operación. Inténtalo de nuevo.",
       "errors": {
         "account_required": "Selecciona una cuenta válida.",
         "symbol_required": "El activo es obligatorio.",
