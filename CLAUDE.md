@@ -1,7 +1,7 @@
 # CLAUDE.md — Trading Journal
 
 > Documento de arquitectura y contexto para Claude Code.
-> Personal trading journal para futuros crypto (BingX / Bitunix / Bitget / otros), con arquitectura preparada para multi-cuenta, multi-usuario y despliegue futuro en Vercel.
+> Personal trading journal para futuros crypto (Bitget / Bitunix / BingX / otros), con arquitectura preparada para multi-cuenta, multi-usuario y despliegue futuro en Vercel.
 > Prosa en español; identificadores, tablas y campos en inglés.
 
 ---
@@ -294,7 +294,7 @@ Capas presentacionales (atoms/molecules/organisms) sin BD ni server actions: rec
 
 ## 8. Funcionalidades (mapeadas a TradeZella)
 
-- **Dashboard**: `KpiCardRow` + `PerformanceRadar` (Trade) + `ProgressHeatmap` + `EquityCurveChart` + `TradeCalendar` (totales semanales) + `AccountBalanceChart` + recent trades.
+- **Dashboard**: `KpiCardRow` + `PerformanceRadar` (Trade Score) + `ProgressHeatmap` + `EquityCurveChart` + `TradeCalendar` (totales semanales) + `AccountBalanceChart` + recent trades.
 - **Trades**: tabla (open/close date, symbol, status, entry/exit, net P&L, ROI) + alta/edición manual con subida de capturas + filtros por periodo/resultado/cuenta.
 - **Trade detail**: stats del trade + notas + capturas (+ gráfico, fase posterior).
 - **Start My Day**: prep diario con plantilla + `PreTradeEvaluator` + checklist diario que alimenta el progress tracker.
@@ -351,7 +351,7 @@ export const EVALUATOR_QUESTIONS = [
 ## 12. Orden de construcción (fases)
 
 - **Fase 0 — Scaffold**: Next.js+TS, Tailwind+shadcn, Drizzle, Supabase local (Docker), next-intl, next-themes, tokens, carpetas atomic.
-- **Fase 1 — MVP core**: auth (super_admin sembrado por migración) · `accounts` CRUD + cuota · `trades` CRUD manual + capturas · `AccountSelector` · Dashboard (KPIs, equity curve, calendario, Trade radar, progress heatmap) · `transactions` + Account Balance chart · Settings (idioma + tema).
+- **Fase 1 — MVP core**: auth (super_admin sembrado por migración) · `accounts` CRUD + cuota · `trades` CRUD manual + capturas · `AccountSelector` · Dashboard (KPIs, equity curve, calendario, Trade Score radar, progress heatmap) · `transactions` + Account Balance chart · Settings (idioma + tema).
 - **Fase 2**: Start My Day (prep + checklist + progress) + Evaluador Pre-Trade · Daily Journal / Notebook.
 - **Fase 3**: Reports avanzados (overview, Day & Time, Symbols, Risk, Compare) · Trade detail con gráfico.
 - **Fase 4**: Registro abierto de usuarios + panel super_admin (gestión de usuarios y `max_accounts`) · (opcional) auto-import de fills desde Bitget/Bitunix vía Vercel Cron.
@@ -359,7 +359,56 @@ export const EVALUATOR_QUESTIONS = [
 
 ---
 
-## 13. Convenciones
+## 13. Validación de formularios
+
+**Stack fijo (elegir UNO y usarlo en todos los formularios):** **React Hook Form** + **Zod** + `@hookform/resolvers/zod`, sobre el primitivo **`Field` de shadcn/ui** (`npx shadcn@latest add field`).
+
+> Desde oct-2025 shadcn separó el layout del estado: `<Field>` es un primitivo agnóstico (funciona con Server Actions, RHF, TanStack Form, etc.) y reemplaza al antiguo `<Form>`/`<FormField>` acoplado a RHF (ese sigue funcionando pero ya no es el punto de partida recomendado). **Usar `<Field>`, no `<Form>`/`<FormField>`.**
+>
+> Elegimos React Hook Form (no TanStack Form ni Formisch): es la opción madura y de mayor ecosistema, encaja con formularios de complejidad moderada y server actions, y los formularios de la Fase 1 ya están en RHF → cero migración de librería. TanStack Form solo se justificaría en formularios muy complejos (wizards multi-paso); Formisch es demasiado nueva para este proyecto.
+
+**Regla de oro:** la validación de cliente es solo UX (feedback inmediato); el **server action es la fuente de verdad** y siempre re-valida. Nunca confiar solo en la validación del navegador.
+
+**Esquema único compartido.** Un esquema por entidad en `lib/validations/` (`tradeSchema`, `accountSchema`, `transactionSchema`, `dailyPrepSchema`, `evaluatorSchema`...). Se importa desde el formulario (cliente) y desde el server action (servidor); cero duplicación. El tipo se deriva con `z.infer<typeof schema>`.
+
+```ts
+// lib/validations/trade.ts
+import { z } from 'zod';
+export const tradeSchema = z.object({
+  symbol: z.string().min(1),
+  direction: z.enum(['long', 'short']),
+  // ...
+});
+export type TradeInput = z.infer<typeof tradeSchema>;
+```
+
+**Cliente** (organism, ej. `TradeForm`, `'use client'`):
+```ts
+const form = useForm<TradeInput>({ resolver: zodResolver(tradeSchema) });
+// usar el primitivo <Field>/<FieldGroup> de shadcn (no el <Form>/<FormField> antiguo)
+```
+
+**Servidor** (server action): mismo esquema con `safeParse`, **luego** validar sesión, ownership de la cuenta y reglas de negocio (ej. cuota en `createAccount`). Devolver errores estructurados y exponer `pending` con `useActionState`.
+```ts
+'use server';
+export async function createTrade(prev, formData) {
+  const parsed = tradeSchema.safeParse(Object.fromEntries(formData));
+  if (!parsed.success) return { errors: parsed.error.flatten().fieldErrors };
+  // validar sesión + ownership de account_id + reglas, luego insertar
+}
+```
+
+**i18n de los mensajes.** No hardcodear el texto del error dentro del esquema (`.min(2, { message: '...' })`). Usar un **error map** de Zod (o claves que se resuelvan con next-intl) para que los mensajes de validación salgan en ES/EN como el resto de la UI.
+
+**Versión.** Fijar **Zod v4** y usar su sintaxis (p. ej. `z.email()` en lugar de `z.string().email()`); evitar mezclar ejemplos de v3.
+
+**Ubicación en Atomic Design.** El `Form`/`FormField` vive en los organisms de formulario (`TradeForm`, `AccountForm`, `TransactionForm`...); los esquemas y cualquier lógica de validación pura quedan en `lib/validations/` (testeable, sin UI).
+
+> Nota Fase 1: los formularios ya construidos (trades, cuentas, transacciones) deben verificarse contra este patrón — esquema en `lib/validations/`, re-validación en el server action, y mensajes vía i18n.
+
+---
+
+## 14. Convenciones
 
 - Server Components por defecto; `'use client'` solo donde haya interactividad.
 - Capas atomic presentacionales y testeables; lógica de métricas en funciones puras.
