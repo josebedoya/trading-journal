@@ -12,6 +12,7 @@ import {
   createTransaction,
   deleteTransaction,
 } from "@/server/actions/transactions";
+import { getUserTimeZone } from "@/lib/timezone";
 import { getAccounts } from "@/server/queries/accounts";
 import {
   getAccountBalanceSeries,
@@ -26,10 +27,11 @@ export default async function TransactionsPage({
   const { locale } = await params;
   setRequestLocale(locale);
 
+  const timeZone = await getUserTimeZone();
   const [accounts, transactions, series] = await Promise.all([
     getAccounts(),
     getTransactions(),
-    getAccountBalanceSeries(),
+    getAccountBalanceSeries(timeZone),
   ]);
   const active = accounts.filter((a) => a.status === "active");
   const t = await getTranslations("transactions");

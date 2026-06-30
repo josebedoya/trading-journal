@@ -1,11 +1,13 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import { ThemeToggle } from "@/components/molecules/theme-toggle";
+import { TimeZoneSync } from "@/components/providers/timezone-sync";
 import { AccountSelector } from "@/components/organisms/account-selector";
 import { Button } from "@/components/ui/button";
 import { getCurrentUser } from "@/lib/auth/current-user";
 import { Link, redirect } from "@/lib/i18n/navigation";
 import { type Locale } from "@/lib/i18n/routing";
+import { getUserTimeZone } from "@/lib/timezone";
 import { signOut } from "@/server/actions/auth";
 import { getAccounts, getEffectiveAccountIds } from "@/server/queries/accounts";
 
@@ -29,9 +31,11 @@ export default async function AppLayout({
   const accounts = await getAccounts();
   const selected = await getEffectiveAccountIds();
   const allActive = (user!.profile.selectedAccountIds ?? []).length === 0;
+  const timeZone = await getUserTimeZone();
 
   return (
     <div className="flex min-h-svh flex-col">
+      <TimeZoneSync current={timeZone} />
       <header className="flex items-center justify-between gap-4 border-b px-6 py-3">
         <div className="flex items-center gap-6">
           <span className="font-semibold tracking-tight">{t("app.name")}</span>

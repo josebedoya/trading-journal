@@ -15,6 +15,7 @@ import {
 import { computeMetrics, dailyStats, equityCurve } from "@/lib/metrics/metrics";
 import { tradeScore } from "@/lib/metrics/trade-score";
 import { getCurrentUser } from "@/lib/auth/current-user";
+import { getUserTimeZone } from "@/lib/timezone";
 import { getTrades } from "@/server/queries/trades";
 import { getMetricTrades } from "@/server/queries/dashboard";
 import { getAccountBalanceSeries } from "@/server/queries/transactions";
@@ -29,17 +30,18 @@ export default async function DashboardPage({
 
   const user = await getCurrentUser();
   const t = await getTranslations("dashboard");
+  const timeZone = await getUserTimeZone();
 
   const [metricTrades, balance, recent] = await Promise.all([
     getMetricTrades(),
-    getAccountBalanceSeries(),
+    getAccountBalanceSeries(timeZone),
     getTrades(),
   ]);
 
-  const metrics = computeMetrics(metricTrades);
+  const metrics = computeMetrics(metricTrades, timeZone);
   const score = tradeScore(metrics);
-  const curve = equityCurve(metricTrades);
-  const daily = dailyStats(metricTrades);
+  const curve = equityCurve(metricTrades, timeZone);
+  const daily = dailyStats(metricTrades, timeZone);
 
   return (
     <main className="mx-auto max-w-6xl space-y-6 px-6 py-10">
@@ -76,7 +78,7 @@ export default async function DashboardPage({
           <CardTitle>{t("calendar.title")}</CardTitle>
         </CardHeader>
         <CardContent>
-          <TradeCalendar daily={daily} locale={locale} />
+          <TradeCalendar daily={daily} locale={locale} timeZone={timeZone} />
         </CardContent>
       </Card>
 

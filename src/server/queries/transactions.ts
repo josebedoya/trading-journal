@@ -50,7 +50,7 @@ export type BalancePoint = { label: string; balance: number; deposits: number };
  *   deposits  = starting_balance + Σ signed(transactions)   (baseline de caja)
  * Las dos series se superponen en el gráfico.
  */
-export async function getAccountBalanceSeries(): Promise<{
+export async function getAccountBalanceSeries(timeZone = "UTC"): Promise<{
   points: BalancePoint[];
   currency: string;
 }> {
@@ -87,8 +87,14 @@ export async function getAccountBalanceSeries(): Promise<{
       .where(inArray(transactions.accountId, accountIds)),
   ]);
 
-  // Agrupa deltas por día.
-  const day = (d: Date) => new Date(d).toISOString().slice(0, 10);
+  // Agrupa deltas por día (en la zona horaria del usuario).
+  const dayFmt = new Intl.DateTimeFormat("en-CA", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
+  const day = (d: Date) => dayFmt.format(new Date(d));
   const byDay = new Map<string, { balance: number; deposits: number }>();
   const add = (d: string, balance: number, deposits: number) => {
     const cur = byDay.get(d) ?? { balance: 0, deposits: 0 };

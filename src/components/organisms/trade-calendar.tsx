@@ -34,15 +34,24 @@ function buildMonth(year: number, month: number, byDay: Map<string, DailyStat>) 
 export async function TradeCalendar({
   daily,
   locale,
+  timeZone = "UTC",
 }: {
   daily: DailyStat[];
   locale: string;
+  timeZone?: string;
 }) {
   const t = await getTranslations("dashboard.calendar");
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = now.getMonth();
-  const monthPrefix = `${year}-${String(month + 1).padStart(2, "0")}`;
+
+  // "Hoy" en la zona horaria del usuario → mes a mostrar.
+  const todayKey = new Intl.DateTimeFormat("en-CA", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());
+  const [year, month1] = todayKey.split("-").map(Number);
+  const month = month1 - 1;
+  const monthPrefix = `${year}-${String(month1).padStart(2, "0")}`;
 
   const byDay = new Map(daily.map((d) => [d.day, d]));
   const weeks = buildMonth(year, month, byDay);
@@ -55,7 +64,8 @@ export async function TradeCalendar({
   const monthLabel = new Intl.DateTimeFormat(locale, {
     month: "long",
     year: "numeric",
-  }).format(now);
+    timeZone: "UTC",
+  }).format(new Date(Date.UTC(year, month, 1)));
 
   const weekdayFmt = new Intl.DateTimeFormat(locale, {
     weekday: "short",

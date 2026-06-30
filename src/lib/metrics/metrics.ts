@@ -45,13 +45,27 @@ export type Metrics = {
 
 const sum = (xs: number[]) => xs.reduce((a, b) => a + b, 0);
 const mean = (xs: number[]) => (xs.length ? sum(xs) / xs.length : 0);
-const dayKey = (d: Date) => new Date(d).toISOString().slice(0, 10);
+
+/**
+ * Clave de día (YYYY-MM-DD) en una zona horaria dada. Por defecto UTC;
+ * el dashboard pasa la zona del usuario para agrupar por día local.
+ */
+function dayFormatter(timeZone: string) {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
+}
 
 /** P&L neto por día (ordenado ascendente). */
-export function dailyNet(trades: MetricTrade[]): DailyNet[] {
+export function dailyNet(trades: MetricTrade[], timeZone = "UTC"): DailyNet[] {
+  const fmt = dayFormatter(timeZone);
   const byDay = new Map<string, number>();
   for (const t of trades) {
-    byDay.set(dayKey(t.date), (byDay.get(dayKey(t.date)) ?? 0) + t.netPnl);
+    const k = fmt.format(new Date(t.date));
+    byDay.set(k, (byDay.get(k) ?? 0) + t.netPnl);
   }
   return [...byDay.entries()]
     .sort(([a], [b]) => a.localeCompare(b))
@@ -59,10 +73,11 @@ export function dailyNet(trades: MetricTrade[]): DailyNet[] {
 }
 
 /** Stats por día (net, nº de trades, nº de ganados) — para el calendario. */
-export function dailyStats(trades: MetricTrade[]): DailyStat[] {
+export function dailyStats(trades: MetricTrade[], timeZone = "UTC"): DailyStat[] {
+  const fmt = dayFormatter(timeZone);
   const byDay = new Map<string, DailyStat>();
   for (const t of trades) {
-    const k = dayKey(t.date);
+    const k = fmt.format(new Date(t.date));
     const cur = byDay.get(k) ?? { day: k, net: 0, trades: 0, wins: 0 };
     cur.net += t.netPnl;
     cur.trades += 1;
@@ -73,20 +88,23 @@ export function dailyStats(trades: MetricTrade[]): DailyStat[] {
 }
 
 /** Equity curve: P&L neto acumulado por día. */
-export function equityCurve(trades: MetricTrade[]): CurvePoint[] {
+export function equityCurve(trades: MetricTrade[], timeZone = "UTC"): CurvePoint[] {
   let acc = 0;
-  return dailyNet(trades).map(({ day, net }) => {
+  return dailyNet(trades, timeZone).map(({ day, net }) => {
     acc += net;
     return { label: day, value: acc };
   });
 }
 
 /** Max drawdown (absoluto y % sobre el pico) de la equity curve. */
-export function maxDrawdown(trades: MetricTrade[]): {
+export function maxDrawdown(
+  trades: MetricTrade[],
+  timeZone = "UTC",
+): {
   abs: number;
   pct: number;
 } {
-  const curve = equityCurve(trades);
+  const curve = equityCurve(trades, timeZone);
   let peak = 0; // arranca en 0 (sin depósitos)
   let maxAbs = 0;
   let maxPct = 0;
@@ -99,7 +117,10 @@ export function maxDrawdown(trades: MetricTrade[]): {
   return { abs: maxAbs, pct: maxPct };
 }
 
-export function computeMetrics(trades: MetricTrade[]): Metrics {
+export function computeMetrics(
+  trades: MetricTrade[],
+  timeZone = "UTC",
+): Metrics {
   const count = trades.length;
   const winners = trades.filter((t) => t.result === "win");
   const losers = trades.filter((t) => t.result === "loss");
@@ -120,10 +141,10 @@ export function computeMetrics(trades: MetricTrade[]): Metrics {
   const avgWinLossRatio = avgLoss === 0 ? (avgWin > 0 ? Infinity : 0) : avgWin / avgLoss;
   const expectancy = winRate * avgWin - lossRate * avgLoss;
 
-  const dd = maxDrawdown(trades);
+  const dd = maxDrawdown(trades, timeZone);
   const recoveryFactor = dd.abs === 0 ? (netPnl > 0 ? Infinity : 0) : netPnl / dd.abs;
 
-  const days = dailyNet(trades);
+  const days = dailyNet(trades, timeZone);
   const tradedDays = days.length;
   const winningDays = days.filter((d) => d.net > 0).length;
   const dayWinRate = tradedDays ? winningDays / tradedDays : 0;
