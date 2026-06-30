@@ -15,11 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  createTrade,
-  updateTrade,
-  type TradeState,
-} from "@/server/actions/trades";
+import type { TradeState } from "@/server/actions/trades";
 
 type AccountOpt = { id: string; name: string };
 type SetupOpt = { id: string; name: string };
@@ -100,18 +96,19 @@ export function TradeForm({
   accounts,
   setups,
   trade,
+  action: submitAction,
 }: {
   mode: "create" | "edit";
   accounts: AccountOpt[];
   setups: SetupOpt[];
   trade?: TradeFormValues;
+  action: (state: TradeState, formData: FormData) => Promise<TradeState>;
 }) {
   const t = useTranslations("trades.form");
   const locale = useLocale();
-  const [state, action] = useActionState<TradeState, FormData>(
-    mode === "create" ? createTrade : updateTrade,
-    { error: null },
-  );
+  const [state, action] = useActionState<TradeState, FormData>(submitAction, {
+    error: null,
+  });
 
   return (
     <form action={action} className="space-y-6">
@@ -145,7 +142,7 @@ export function TradeForm({
           label={t("symbol")}
           defaultValue={trade?.symbol}
           required
-          placeholder="BTC/USDT"
+          placeholder={t("symbolPlaceholder")}
         />
 
         <div className="space-y-2">

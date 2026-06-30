@@ -8,6 +8,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  createTransaction,
+  deleteTransaction,
+} from "@/server/actions/transactions";
 import { getAccounts } from "@/server/queries/accounts";
 import {
   getAccountBalanceSeries,
@@ -47,6 +51,8 @@ export default async function TransactionsPage({
         <TransactionsManager
           accounts={active.map((a) => ({ id: a.id, name: a.name }))}
           transactions={transactions}
+          createAction={createTransaction}
+          deleteAction={deleteTransaction}
         />
       </div>
     </main>

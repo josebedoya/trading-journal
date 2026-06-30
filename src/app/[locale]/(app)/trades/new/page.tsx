@@ -3,6 +3,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { TradeForm } from "@/components/organisms/trade-form";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/lib/i18n/navigation";
+import { createTrade } from "@/server/actions/trades";
 import { getAccounts } from "@/server/queries/accounts";
 import { getSetups } from "@/server/queries/trades";
 
@@ -32,6 +33,7 @@ export default async function NewTradePage({
         ) : (
           <TradeForm
             mode="create"
+            action={createTrade}
             accounts={active.map((a) => ({ id: a.id, name: a.name }))}
             setups={setups}
           />

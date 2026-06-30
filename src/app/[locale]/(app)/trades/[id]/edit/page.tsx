@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import { TradeForm } from "@/components/organisms/trade-form";
+import { updateTrade } from "@/server/actions/trades";
 import { getAccounts } from "@/server/queries/accounts";
 import { getSetups, getTradeById } from "@/server/queries/trades";
 
@@ -26,6 +27,7 @@ export default async function EditTradePage({
       <div className="mt-8">
         <TradeForm
           mode="edit"
+          action={updateTrade}
           accounts={accounts
             .filter((a) => a.status === "active" || a.id === tr.accountId)
             .map((a) => ({ id: a.id, name: a.name }))}

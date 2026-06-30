@@ -73,6 +73,7 @@
     "form": {
       "account": "Account",
       "symbol": "Symbol",
+      "symbolPlaceholder": "BTC/USDT",
       "direction": "Direction",
       "directions": { "long": "Long", "short": "Short" },
       "session": "Session",
@@ -160,6 +161,7 @@
     "allAccounts": "All accounts",
     "nSelected": "{count} accounts",
     "archived": "Archived",
+    "statuses": { "archived": "Archived" },
     "createFirst": "Create account",
     "empty": "You don't have any accounts yet.",
     "archive": "Archive",
@@ -170,6 +172,7 @@
     "fields": {
       "name": "Name",
       "exchange": "Exchange",
+      "exchangePlaceholder": "Bitget",
       "currency": "Currency",
       "startingBalance": "Starting balance"
     },

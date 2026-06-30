@@ -20,12 +20,18 @@ import {
 } from "@/components/ui/select";
 import { usePathname, useRouter } from "@/lib/i18n/navigation";
 import { routing } from "@/lib/i18n/routing";
-import {
-  setLocalePreference,
-  setThemePreference,
-} from "@/server/actions/preferences";
 
-export function PreferencesPanel({ initialTheme }: { initialTheme: string }) {
+type Props = {
+  initialTheme: string;
+  setThemeAction: (theme: string) => Promise<void>;
+  setLocaleAction: (locale: string) => Promise<void>;
+};
+
+export function PreferencesPanel({
+  initialTheme,
+  setThemeAction,
+  setLocaleAction,
+}: Props) {
   const t = useTranslations("settings.preferences");
   const router = useRouter();
   const pathname = usePathname();
@@ -36,13 +42,13 @@ export function PreferencesPanel({ initialTheme }: { initialTheme: string }) {
   function changeTheme(value: string) {
     setTheme(value);
     startTransition(async () => {
-      await setThemePreference(value);
+      await setThemeAction(value);
     });
   }
 
   function changeLocale(value: string) {
     startTransition(async () => {
-      await setLocalePreference(value);
+      await setLocaleAction(value);
     });
     router.replace(pathname, { locale: value });
   }

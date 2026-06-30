@@ -21,11 +21,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  createTransaction,
-  deleteTransaction,
-  type TransactionState,
-} from "@/server/actions/transactions";
+import type { TransactionState } from "@/server/actions/transactions";
+
+type CreateAction = (
+  state: TransactionState,
+  formData: FormData,
+) => Promise<TransactionState>;
+type DeleteAction = (id: string) => Promise<void>;
 
 type AccountOpt = { id: string; name: string };
 type Tx = {
@@ -47,7 +49,13 @@ function SubmitButton({ label }: { label: string }) {
   );
 }
 
-function DeleteButton({ id }: { id: string }) {
+function DeleteButton({
+  id,
+  onDelete,
+}: {
+  id: string;
+  onDelete: DeleteAction;
+}) {
   const t = useTranslations("transactions");
   const [pending, startTransition] = useTransition();
   return (
@@ -55,7 +63,7 @@ function DeleteButton({ id }: { id: string }) {
       variant="ghost"
       size="sm"
       disabled={pending}
-      onClick={() => startTransition(async () => void (await deleteTransaction(id)))}
+      onClick={() => startTransition(async () => void (await onDelete(id)))}
     >
       {t("delete")}
     </Button>
@@ -65,9 +73,13 @@ function DeleteButton({ id }: { id: string }) {
 export function TransactionsManager({
   accounts,
   transactions,
+  createAction,
+  deleteAction,
 }: {
   accounts: AccountOpt[];
   transactions: Tx[];
+  createAction: CreateAction;
+  deleteAction: DeleteAction;
 }) {
   const t = useTranslations("transactions");
   const locale = useLocale();
@@ -75,7 +87,7 @@ export function TransactionsManager({
   const [type, setType] = useState("deposit");
   const [state, action] = useActionState(
     async (prev: TransactionState, fd: FormData) => {
-      const res = await createTransaction(prev, fd);
+      const res = await createAction(prev, fd);
       if (res.ok) {
         formRef.current?.reset();
         setType("deposit");
@@ -181,7 +193,7 @@ export function TransactionsManager({
                   <span className="text-muted-foreground">— {tx.note}</span>
                 )}
               </div>
-              <DeleteButton id={tx.id} />
+              <DeleteButton id={tx.id} onDelete={deleteAction} />
             </div>
           ))
         )}

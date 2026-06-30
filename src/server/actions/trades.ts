@@ -1,12 +1,13 @@
 "use server";
 
-import { and, eq } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { requireUser } from "@/lib/auth/current-user";
 import { db } from "@/lib/db/client";
 import { defaultLocale, type Locale } from "@/lib/i18n/routing";
+import { subtractMoney, signOfMoney } from "@/lib/money";
 import { deleteScreenshot, uploadScreenshot } from "@/lib/storage";
 import { accounts, screenshots, trades } from "@/lib/db/schema";
 
@@ -93,9 +94,10 @@ function parseTradeForm(formData: FormData, accountId: string): ParsedTrade {
   if (bad) return { values: blank, error: "invalid_number" };
   if (gross.value === null) return { values: blank, error: "gross_pnl_required" };
 
-  const net = Number(gross.value) - Number(fees.value ?? "0");
-  const netPnl = net.toFixed(8);
-  const result = net > 0 ? "win" : net < 0 ? "loss" : "breakeven";
+  // net = gross − fees, exacto (sin float, §13).
+  const netPnl = subtractMoney(gross.value, fees.value ?? "0");
+  const sign = signOfMoney(netPnl);
+  const result = sign > 0 ? "win" : sign < 0 ? "loss" : "breakeven";
 
   return {
     error: null,
@@ -177,14 +179,15 @@ export async function updateTrade(
   if (!(await assertOwnedAccount(accountId, user.profile.id, isAdmin)))
     return { error: "account_required" };
 
-  // Verifica ownership del trade existente.
+  // Verifica ownership del trade existente (no solo de la cuenta nueva).
   const [existing] = await db
-    .select({ id: trades.id, accountId: trades.accountId })
+    .select({ ownerId: accounts.userId })
     .from(trades)
     .innerJoin(accounts, eq(accounts.id, trades.accountId))
-    .where(and(eq(trades.id, id)))
+    .where(eq(trades.id, id))
     .limit(1);
-  if (!existing) return { error: "not_found" };
+  if (!existing || (existing.ownerId !== user.profile.id && !isAdmin))
+    return { error: "not_found" };
 
   const parsed = parseTradeForm(formData, accountId);
   if (parsed.error) return { error: parsed.error };

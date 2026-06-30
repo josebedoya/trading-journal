@@ -14,7 +14,11 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { signIn, type AuthState } from "@/server/actions/auth";
+import type { AuthState } from "@/server/actions/auth";
+
+type Props = {
+  action: (state: AuthState, formData: FormData) => Promise<AuthState>;
+};
 
 function SubmitButton() {
   const { pending } = useFormStatus();
@@ -26,10 +30,10 @@ function SubmitButton() {
   );
 }
 
-export function LoginForm() {
+export function LoginForm({ action }: Props) {
   const t = useTranslations("auth");
   const locale = useLocale();
-  const [state, formAction] = useActionState<AuthState, FormData>(signIn, {
+  const [state, formAction] = useActionState<AuthState, FormData>(action, {
     error: null,
   });
 

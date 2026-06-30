@@ -3,6 +3,16 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { AccountsManager } from "@/components/organisms/accounts-manager";
 import { PreferencesPanel } from "@/components/organisms/preferences-panel";
 import { requireUser } from "@/lib/auth/current-user";
+import {
+  archiveAccount,
+  createAccount,
+  unarchiveAccount,
+  updateAccount,
+} from "@/server/actions/accounts";
+import {
+  setLocalePreference,
+  setThemePreference,
+} from "@/server/actions/preferences";
 import { getAccounts } from "@/server/queries/accounts";
 
 export default async function SettingsPage({
@@ -23,7 +33,11 @@ export default async function SettingsPage({
       <h1 className="text-2xl font-semibold tracking-tight">{t("title")}</h1>
 
       <div className="mt-8">
-        <PreferencesPanel initialTheme={user.profile.theme} />
+        <PreferencesPanel
+          initialTheme={user.profile.theme}
+          setThemeAction={setThemePreference}
+          setLocaleAction={setLocalePreference}
+        />
       </div>
 
       <div className="mt-8">
@@ -39,6 +53,10 @@ export default async function SettingsPage({
           activeCount={activeCount}
           maxAccounts={user.profile.maxAccounts}
           isAdmin={user.profile.role === "super_admin"}
+          createAction={createAccount}
+          updateAction={updateAccount}
+          archiveAction={archiveAccount}
+          unarchiveAction={unarchiveAccount}
         />
       </div>
     </main>

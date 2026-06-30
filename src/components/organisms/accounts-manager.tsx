@@ -25,13 +25,13 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  archiveAccount,
-  createAccount,
-  unarchiveAccount,
-  updateAccount,
-  type AccountState,
-} from "@/server/actions/accounts";
+import type { AccountState } from "@/server/actions/accounts";
+
+type FormAction = (
+  state: AccountState,
+  formData: FormData,
+) => Promise<AccountState>;
+type ToggleAction = (id: string) => Promise<AccountState>;
 
 type Account = {
   id: string;
@@ -58,7 +58,7 @@ function Fields({ account }: { account?: Account }) {
           id="exchange"
           name="exchange"
           defaultValue={account?.exchange ?? ""}
-          placeholder="Bitget"
+          placeholder={t("fields.exchangePlaceholder")}
         />
       </div>
       <div className="space-y-2">
@@ -101,12 +101,18 @@ function ErrorText({ error }: { error: string | null }) {
   );
 }
 
-function CreateForm({ disabled }: { disabled: boolean }) {
+function CreateForm({
+  disabled,
+  createAction,
+}: {
+  disabled: boolean;
+  createAction: FormAction;
+}) {
   const t = useTranslations("accounts");
   const formRef = useRef<HTMLFormElement>(null);
   const [state, action] = useActionState(
     async (prev: AccountState, fd: FormData) => {
-      const res = await createAccount(prev, fd);
+      const res = await createAction(prev, fd);
       if (res.ok) formRef.current?.reset();
       return res;
     },
@@ -134,12 +140,18 @@ function CreateForm({ disabled }: { disabled: boolean }) {
   );
 }
 
-function EditDialog({ account }: { account: Account }) {
+function EditDialog({
+  account,
+  updateAction,
+}: {
+  account: Account;
+  updateAction: FormAction;
+}) {
   const t = useTranslations("accounts");
   const [open, setOpen] = useState(false);
   const [state, action] = useActionState(
     async (prev: AccountState, fd: FormData) => {
-      const res = await updateAccount(prev, fd);
+      const res = await updateAction(prev, fd);
       if (res.ok) setOpen(false);
       return res;
     },
@@ -171,7 +183,15 @@ function EditDialog({ account }: { account: Account }) {
   );
 }
 
-function StatusButton({ account }: { account: Account }) {
+function StatusButton({
+  account,
+  archiveAction,
+  unarchiveAction,
+}: {
+  account: Account;
+  archiveAction: ToggleAction;
+  unarchiveAction: ToggleAction;
+}) {
   const t = useTranslations("accounts");
   const [pending, startTransition] = useTransition();
   const archive = account.status === "active";
@@ -183,7 +203,7 @@ function StatusButton({ account }: { account: Account }) {
       disabled={pending}
       onClick={() =>
         startTransition(async () => {
-          await (archive ? archiveAccount(account.id) : unarchiveAccount(account.id));
+          await (archive ? archiveAction(account.id) : unarchiveAction(account.id));
         })
       }
     >
@@ -197,11 +217,19 @@ export function AccountsManager({
   activeCount,
   maxAccounts,
   isAdmin,
+  createAction,
+  updateAction,
+  archiveAction,
+  unarchiveAction,
 }: {
   accounts: Account[];
   activeCount: number;
   maxAccounts: number;
   isAdmin: boolean;
+  createAction: FormAction;
+  updateAction: FormAction;
+  archiveAction: ToggleAction;
+  unarchiveAction: ToggleAction;
 }) {
   const t = useTranslations("accounts");
   const quotaReached = !isAdmin && activeCount >= maxAccounts;
@@ -217,7 +245,7 @@ export function AccountsManager({
         </span>
       </div>
 
-      <CreateForm disabled={quotaReached} />
+      <CreateForm disabled={quotaReached} createAction={createAction} />
 
       <div className="space-y-2">
         {accounts.length === 0 ? (
@@ -242,8 +270,12 @@ export function AccountsManager({
                 </p>
               </div>
               <div className="flex items-center gap-1">
-                <EditDialog account={a} />
-                <StatusButton account={a} />
+                <EditDialog account={a} updateAction={updateAction} />
+                <StatusButton
+                  account={a}
+                  archiveAction={archiveAction}
+                  unarchiveAction={unarchiveAction}
+                />
               </div>
             </div>
           ))
