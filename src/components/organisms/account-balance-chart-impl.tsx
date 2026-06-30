@@ -32,7 +32,7 @@ export default function AccountBalanceChart({
   }
 
   const fmt = (v: number) =>
-    `${v.toLocaleString(undefined, { maximumFractionDigits: 2 })} ${currency}`;
+    `${v.toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
 
   return (
     <div className="h-72 w-full">

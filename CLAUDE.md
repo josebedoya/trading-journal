@@ -127,7 +127,7 @@ Todo se llavea por `account_id`; la cuenta cuelga del usuario. Las métricas de 
 |---|---|---|
 | id | uuid PK | |
 | account_id | uuid FK → accounts | |
-| symbol | text | activo (BTC/USDT...) |
+| symbol | text | activo (BTC...) |
 | direction | enum('long','short') | |
 | result | enum('win','loss','breakeven') | explícito (derivable de net_pnl) |
 | opened_at | timestamptz | fecha+hora de entrada |

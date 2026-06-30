@@ -81,7 +81,7 @@
     "form": {
       "account": "Cuenta",
       "symbol": "Activo",
-      "symbolPlaceholder": "BTC/USDT",
+      "symbolPlaceholder": "BTC",
       "direction": "Dirección",
       "directions": { "long": "Long", "short": "Short" },
       "session": "Sesión",

@@ -24,7 +24,7 @@ export async function KpiCardRow({
     <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
       <StatCard
         label={t("netPnl")}
-        value={`${metrics.netPnl >= 0 ? "+" : ""}${num(metrics.netPnl)} ${currency}`}
+        value={`${metrics.netPnl >= 0 ? "+" : ""}${num(metrics.netPnl)}`}
         tone={metrics.netPnl > 0 ? "win" : metrics.netPnl < 0 ? "loss" : "default"}
         hint={t("trades", { count: metrics.count })}
       />

@@ -56,7 +56,7 @@ export default function EquityCurveChart({
           />
           <Tooltip
             formatter={(v) =>
-              `${Number(v).toLocaleString(undefined, { maximumFractionDigits: 2 })} ${currency}`
+              `${Number(v).toLocaleString(undefined, { maximumFractionDigits: 2 })}`
             }
             contentStyle={{
               background: "var(--popover)",

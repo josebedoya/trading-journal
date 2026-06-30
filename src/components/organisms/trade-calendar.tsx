@@ -146,7 +146,7 @@ function WeekRow({
               weekTotal > 0 ? "text-win" : weekTotal < 0 ? "text-loss" : "",
             )}
           >
-            {fmtNet(weekTotal)} {currency}
+            {fmtNet(weekTotal)}
           </span>
         )}
       </div>

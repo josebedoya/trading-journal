@@ -16,7 +16,7 @@ import type { TradeListItem } from "@/server/queries/trades";
 function money(value: string, currency: string) {
   const n = Number(value);
   const sign = n > 0 ? "+" : "";
-  return `${sign}${n.toFixed(2)} ${currency}`;
+  return `${sign}${n.toFixed(2)}`;
 }
 
 function pnlClass(value: string) {
