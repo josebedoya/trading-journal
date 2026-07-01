@@ -8,7 +8,7 @@ import { z } from "zod";
 import { getCurrentUser, requireUser } from "@/lib/auth/current-user";
 import { db } from "@/lib/db/client";
 import { defaultLocale, type Locale } from "@/lib/i18n/routing";
-import { signOfMoney, subtractMoney } from "@/lib/money";
+import { addMoney, signOfMoney } from "@/lib/money";
 import { deleteScreenshot, uploadScreenshot } from "@/lib/storage";
 import { accounts, screenshots, trades } from "@/lib/db/schema";
 import { tradeSchema, type TradeInput } from "@/lib/validations/trade";
@@ -39,16 +39,17 @@ async function assertOwnedAccount(
 
 /**
  * Mapea el input validado a los valores de la fila `trades`.
- * Deriva `result` y `netPnl` (net = gross − fees, exacto sin float, §13).
+ * El form captura el P&L NETO; se derivan `grossPnl` (gross = net + fees,
+ * exacto sin float, §13) y `result` (signo del net).
  * Los numéricos se guardan como string (columnas `numeric`).
  */
 function toInsertValues(
   data: TradeInput,
 ): Omit<typeof trades.$inferInsert, "id"> {
   const money = (n: number | undefined) => (n == null ? null : String(n));
-  const grossPnl = String(data.grossPnl);
+  const netPnl = String(data.netPnl);
   const fees = String(data.fees);
-  const netPnl = subtractMoney(grossPnl, fees);
+  const grossPnl = addMoney(netPnl, fees);
   const sign = signOfMoney(netPnl);
   const result = sign > 0 ? "win" : sign < 0 ? "loss" : "breakeven";
 

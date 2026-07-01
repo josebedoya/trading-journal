@@ -22,6 +22,11 @@ function fromScaled(scaled: bigint): string {
   return `${neg ? "-" : ""}${intPart}.${fracPart}`;
 }
 
+/** a + b, exacto, devuelto como string con 8 decimales. */
+export function addMoney(a: string, b: string): string {
+  return fromScaled(toScaled(a) + toScaled(b));
+}
+
 /** a − b, exacto, devuelto como string con 8 decimales. */
 export function subtractMoney(a: string, b: string): string {
   return fromScaled(toScaled(a) - toScaled(b));

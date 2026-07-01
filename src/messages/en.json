@@ -103,6 +103,7 @@
       "quantity": "Quantity",
       "leverage": "Leverage",
       "grossPnl": "Gross P&L",
+      "netPnl": "Net P&L",
       "fees": "Fees",
       "plannedRr": "Planned R:R",
       "realizedRr": "Realized R:R",

@@ -9,14 +9,14 @@ import { z } from "zod";
  *   (`z.coerce.number()`, `z.coerce.date()`).
  * - Optatividad espejada del schema Drizzle (`trades`) y del formulario.
  *   Requeridos: accountId, symbol, direction, openedAt, entryPrice, exitPrice,
- *               grossPnl.
+ *               netPnl.
  *   Opcionales:  closedAt, realizedRr, riskAmount, session, setupId,
  *                strategy, timeframe, notes.
  *   `fees` es opcional con default 0 (igual que `numeric notNull default '0'`).
  *   Nota: quantity, leverage y plannedRr ya no se capturan en el form (sus
  *   columnas se conservan en BD como legacy/nullable).
- * - `result` y `netPnl` NO viven aquí: son DERIVADOS en el server action
- *   (net = gross − fees; result = signo(net)). El form no los captura.
+ * - El form captura el P&L NETO directamente. `grossPnl` y `result` son
+ *   DERIVADOS en el server action (gross = net + fees; result = signo(net)).
  * - i18n-ready: los mensajes son CLAVES, nunca texto. El consumidor las
  *   resuelve con next-intl (`t(issue.message)`). Claves (namespace `validation`):
  *     required · invalidOption · invalidNumber · invalidDate · invalidId
@@ -64,7 +64,7 @@ export const tradeSchema = z.object({
   entryPrice: requiredNumber,
   exitPrice: requiredNumber,
 
-  grossPnl: requiredNumber,
+  netPnl: requiredNumber,
   fees: z.coerce.number({ error: "validation.invalidNumber" }).default(0),
 
   realizedRr: optionalNumber,

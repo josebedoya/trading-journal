@@ -103,6 +103,7 @@
       "quantity": "Cantidad",
       "leverage": "Apalancamiento",
       "grossPnl": "P&L bruto",
+      "netPnl": "P&L neto",
       "fees": "Comisiones",
       "plannedRr": "R:R planeado",
       "realizedRr": "R:R realizado",

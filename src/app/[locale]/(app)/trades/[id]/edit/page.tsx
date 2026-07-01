@@ -41,7 +41,7 @@ export default async function EditTradePage({
             entryPrice: tr.entryPrice,
             exitPrice: tr.exitPrice,
             fees: tr.fees,
-            grossPnl: tr.grossPnl,
+            netPnl: tr.netPnl,
             realizedRr: tr.realizedRr,
             riskAmount: tr.riskAmount,
             session: tr.session,

@@ -65,7 +65,7 @@ export type TradeDefaults = {
   closedAt: Date | null;
   entryPrice: string | null;
   exitPrice: string | null;
-  grossPnl: string;
+  netPnl: string;
   fees: string;
   realizedRr: string | null;
   riskAmount: string | null;
@@ -101,7 +101,7 @@ function buildDefaults(
       closedAt: toLocalInput(trade.closedAt),
       entryPrice: trade.entryPrice ?? "",
       exitPrice: trade.exitPrice ?? "",
-      grossPnl: trade.grossPnl,
+      netPnl: trade.netPnl,
       fees: trade.fees,
       realizedRr: trade.realizedRr ?? "",
       riskAmount: trade.riskAmount ?? "",
@@ -120,7 +120,7 @@ function buildDefaults(
     closedAt: "",
     entryPrice: "",
     exitPrice: "",
-    grossPnl: "",
+    netPnl: "",
     fees: "0",
     realizedRr: "",
     riskAmount: "",
@@ -292,7 +292,7 @@ export function TradeForm({
             <TextField name="closedAt" label={t("closedAt")} type="datetime-local" />
             <TextField name="entryPrice" label={t("entryPrice")} />
             <TextField name="exitPrice" label={t("exitPrice")} />
-            <TextField name="grossPnl" label={t("grossPnl")} />
+            <TextField name="netPnl" label={t("netPnl")} />
             <TextField name="fees" label={t("fees")} />
             <TextField name="realizedRr" label={t("realizedRr")} />
             <TextField name="riskAmount" label={t("riskAmount")} />

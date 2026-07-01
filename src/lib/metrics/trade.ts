@@ -37,6 +37,23 @@ export function realizedR(
   return net / risk;
 }
 
+/**
+ * R a MOSTRAR en la UI: prioriza el R:R capturado en el form (`realizedRr`,
+ * "tal y como se agregó"); si no se capturó, cae al derivado net/risk.
+ * Devuelve number o null.
+ */
+export function displayR(
+  realizedRr: string | number | null,
+  netPnl: string | number,
+  riskAmount: string | number | null,
+): number | null {
+  if (realizedRr != null && realizedRr !== "") {
+    const entered = Number(realizedRr);
+    if (Number.isFinite(entered)) return entered;
+  }
+  return realizedR(netPnl, riskAmount);
+}
+
 /** Duración de la operación en ms (null si falta alguna fecha). */
 export function holdTimeMs(
   openedAt: Date | string,

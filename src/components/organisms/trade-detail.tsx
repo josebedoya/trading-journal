@@ -10,7 +10,7 @@ import {
 } from "@/components/organisms/trade-table";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/lib/i18n/navigation";
-import { holdTimeMs, realizedR, returnPct } from "@/lib/metrics/trade";
+import { displayR, holdTimeMs, returnPct } from "@/lib/metrics/trade";
 import { formatMoney } from "@/lib/money";
 import type { accounts, trades } from "@/lib/db/schema";
 
@@ -41,7 +41,7 @@ export async function TradeDetail({
     dateStyle: "medium",
     timeStyle: "short",
   });
-  const r = realizedR(trade.netPnl, trade.riskAmount);
+  const r = displayR(trade.realizedRr, trade.netPnl, trade.riskAmount);
   const ret = returnPct(trade.direction, trade.entryPrice, trade.exitPrice);
 
   const rows: [string, string][] = [
@@ -59,7 +59,10 @@ export async function TradeDetail({
     [t("grossPnl"), formatMoney(trade.grossPnl)],
     [t("fees"), formatMoney(trade.fees)],
     [t("netPnl"), formatMoney(trade.netPnl)],
-    [t("realizedRr"), trade.realizedRr ?? "—"],
+    [
+      t("realizedRr"),
+      trade.realizedRr != null ? formatR(Number(trade.realizedRr)) : "—",
+    ],
     [t("riskAmount"), trade.riskAmount ? formatMoney(trade.riskAmount) : "—"],
   ];
 

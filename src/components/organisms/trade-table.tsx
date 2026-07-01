@@ -10,7 +10,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Link } from "@/lib/i18n/navigation";
-import { realizedR, returnPct } from "@/lib/metrics/trade";
+import { displayR, returnPct } from "@/lib/metrics/trade";
 import { formatMoney } from "@/lib/money";
 import type { TradeListItem } from "@/server/queries/trades";
 
@@ -21,10 +21,10 @@ function pnlClass(value: string) {
   return "text-muted-foreground";
 }
 
-/** R-múltiplo: "2.4R", "-1R", "—". */
+/** R-múltiplo: "2.6R", "-1R", "—". Muestra hasta 2 decimales sin ceros de más. */
 export function formatR(r: number | null) {
   if (r === null) return "—";
-  return `${r.toFixed(1).replace(/\.0$/, "")}R`;
+  return `${r.toFixed(2).replace(/\.?0+$/, "")}R`;
 }
 
 export function formatReturnPct(p: number | null) {
@@ -75,7 +75,7 @@ export async function TradeTable({
       </TableHeader>
       <TableBody>
         {trades.map((tr) => {
-          const r = realizedR(tr.netPnl, tr.riskAmount);
+          const r = displayR(tr.realizedRr, tr.netPnl, tr.riskAmount);
           const ret = returnPct(tr.direction, tr.entryPrice, tr.exitPrice);
           return (
             <TableRow key={tr.id} className="cursor-pointer">
