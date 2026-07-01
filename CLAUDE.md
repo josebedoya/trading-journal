@@ -12,7 +12,7 @@ App web para registrar y analizar operaciones de trading manualmente. Uso person
 
 **Principios rectores**
 - Modelo de datos correcto desde el día uno (multi-cuenta, roles, separación de depósitos/retiros).
-- Dev y prod idénticos: Postgres en local (Supabase Docker) y en la nube.
+- Dev y prod idénticos: Postgres en local (Docker) y Neon en la nube; mismo `schema.ts` y queries, solo cambia el driver de Drizzle (§2).
 - Métricas de rendimiento calculadas **solo** desde la tabla `trades`; los depósitos/retiros nunca las tocan.
 - UI desacoplada de datos vía Atomic Design.
 - i18n (ES/EN) y theming (light/dark) montados desde el inicio, no retrofitteados.
@@ -26,19 +26,21 @@ App web para registrar y analizar operaciones de trading manualmente. Uso person
 | Framework | Next.js (App Router) + TypeScript |
 | Estilos | Tailwind CSS + shadcn/ui |
 | Componentes | Atomic Design (ver §7) |
-| ORM | Drizzle ORM |
-| Base de datos | Postgres (Supabase — **local vía Docker/CLI** en desarrollo, free tier al desplegar) |
-| Storage | Supabase Storage (capturas de gráficos; en BD solo se guarda la ruta) |
-| Auth | Supabase Auth |
+| ORM | Drizzle ORM (driver por env: `node-postgres` en local, `neon-serverless` en prod) |
+| Base de datos | Postgres — **local vía Docker** (`docker compose up -d`) en desarrollo; **Neon** en la nube |
+| Storage | S3-compatible: **MinIO** en dev, **Cloudflare R2** en prod (capturas; en BD solo la ruta) |
+| Auth | **Better Auth** (email/contraseña) |
 | i18n | next-intl (segmento `[locale]`) |
 | Theming | next-themes + tokens CSS |
 | Gráficos | Recharts (o Tremor para dashboards) |
-| Deploy futuro | Vercel + Supabase (vía Marketplace) |
+| Deploy futuro | Vercel + Neon + Cloudflare R2 |
 
 **Reglas de stack**
 - Dinero: tipo `numeric`/`decimal` en BD; manejar como string/decimal en TS, nunca `float`, para evitar errores de redondeo.
 - Fechas: UTC en BD; mostrar en zona horaria del usuario.
-- Imágenes: **nunca** como `bytea`/base64 en Postgres. Archivos al bucket; en BD solo el `storage_path`. Abstraer la subida tras una interfaz `uploadScreenshot()` para poder cambiar a Cloudflare R2 después sin reescribir.
+- Imágenes: **nunca** como `bytea`/base64 en Postgres. Archivos al bucket S3; en BD solo el `storage_path`. La subida vive tras `lib/storage` (`uploadScreenshot()` / `getSignedUrl()`), agnóstica de MinIO vs R2.
+- **DB**: `lib/db/client.ts` abstrae el driver por `DB_DRIVER` (`node`|`neon`; inferido de `NODE_ENV` si falta). El `schema.ts` y las queries son idénticos en dev y prod. `drizzle-kit` (generate/migrate) corre igual contra el contenedor local y contra Neon (usa `DATABASE_URL`).
+- **Auth**: Better Auth con adaptador Drizzle sobre el mismo `db`. Tablas `users` (identidad + perfil), `sessions`, `auth_accounts` (credenciales/hash), `verifications`. Ids uuid generados por Better Auth. La ruta `app/api/auth/[...all]` expone sus endpoints; `nextCookies()` gestiona la cookie de sesión en server actions.
 
 ---
 
@@ -99,16 +101,26 @@ src/
 Todo se llavea por `account_id`; la cuenta cuelga del usuario. Las métricas de rendimiento salen solo de `trades`.
 
 ### users
+Tabla de identidad de Better Auth **+** perfil de dominio (una sola tabla).
 | campo | tipo | notas |
 |---|---|---|
-| id | uuid PK | = auth.users.id de Supabase |
+| id | uuid PK | generado por Better Auth (uuid v4) |
 | email | text unique | |
+| name | text | requerido por Better Auth (default '') |
+| email_verified | boolean | Better Auth, default false |
+| image | text | Better Auth, nullable |
 | role | enum('super_admin','user') | default 'user' |
 | max_accounts | int | cuota de cuentas activas, default 1 |
 | locale | text | 'es' \| 'en', default 'es' |
 | theme | text | 'light' \| 'dark' \| 'system', default 'system' |
 | selected_account_ids | uuid[] | preferencia del filtro global de cuentas |
-| created_at | timestamptz | |
+| created_at / updated_at | timestamptz | |
+
+### Tablas de auth (Better Auth)
+Gestionadas por el adaptador Drizzle de Better Auth; no se tocan a mano.
+- **sessions** — `id, user_id FK → users, token unique, expires_at, ip_address, user_agent, created_at, updated_at`.
+- **auth_accounts** — credenciales/providers; aquí vive el **hash scrypt** de la contraseña. `id, user_id FK, account_id, provider_id ('credential'), password, tokens..., created_at, updated_at`. (Renombrada desde el modelo `account` de Better Auth para no chocar con las cuentas de trading `accounts`.)
+- **verifications** — `id, identifier, value, expires_at, created_at, updated_at`.
 
 ### accounts
 | campo | tipo | notas |
@@ -259,7 +271,7 @@ export const transactions = pgTable('transactions', {
 
 3. **Filtro global de cuentas** (selector arriba a la derecha). Multi-select con checkboxes ("All accounts" + activas + archivadas). Se persiste en `users.selected_account_ids`; por defecto = todas las activas. Las agregaciones corren sobre el conjunto seleccionado; los depósitos/retiros se mantienen por cuenta.
 
-4. **RLS (Supabase).** Un usuario solo ve sus propias `accounts` y los datos colgados de ellas. Policy adicional `role = 'super_admin'` para acceso total. Toda mutación valida ownership en el server action además de RLS.
+4. **Aislamiento por usuario (ownership en el server layer).** Neon no tiene el `auth.uid()` de Supabase, así que **no hay RLS**: el aislamiento se garantiza en cada `server/action` y `server/query`, que resuelven el usuario con `getCurrentUser()`/`requireUser()` y filtran/validan por `user_id` (o `account_id` propio). El `super_admin` puede acceder a todo. **Toda** mutación y lectura de datos de usuario debe pasar por este chequeo — nunca exponer una query sin filtro de ownership.
 
 ---
 
@@ -350,19 +362,21 @@ export const EVALUATOR_QUESTIONS = [
 ## 11. Server actions / seguridad
 
 - Mutaciones en `server/actions`, lecturas en `server/queries`. Atoms/molecules/organisms nunca llaman a la BD directo.
-- Cada mutación: valida sesión, valida ownership de la cuenta, y aplica reglas (ej. cuota en `createAccount`).
-- RLS en Supabase como segunda barrera. Storage: subir vía `lib/storage`, servir con signed URLs.
+- Cada mutación: valida sesión (`requireUser()`), valida ownership de la cuenta, y aplica reglas (ej. cuota en `createAccount`).
+- Sin RLS (Neon): **el ownership en el server layer es la única barrera** — cada action/query filtra por `user_id`/`account_id` propio. Storage: subir vía `lib/storage`, servir con signed URLs.
+- Auth vía Better Auth: sesión por cookie (`nextCookies()`), endpoints en `app/api/auth/[...all]`, sesión resuelta con `auth.api.getSession()` dentro de `getCurrentUser()`.
 
 ---
 
 ## 12. Orden de construcción (fases)
 
-- **Fase 0 — Scaffold**: Next.js+TS, Tailwind+shadcn, Drizzle, Supabase local (Docker), next-intl, next-themes, tokens, carpetas atomic.
-- **Fase 1 — MVP core**: auth (super_admin sembrado por migración) · `accounts` CRUD + cuota · `trades` CRUD manual + capturas · `AccountSelector` · Dashboard (KPIs, equity curve, calendario, Trade Score radar, progress heatmap) · `transactions` + Account Balance chart · Settings (idioma + tema).
+- **Fase 0 — Scaffold**: Next.js+TS, Tailwind+shadcn, Drizzle, Postgres local (Docker), next-intl, next-themes, tokens, carpetas atomic.
+- **Fase 1 — MVP core**: auth (super_admin sembrado por `db:seed`) · `accounts` CRUD + cuota · `trades` CRUD manual + capturas · `AccountSelector` · Dashboard (KPIs, equity curve, calendario, Trade Score radar, progress heatmap) · `transactions` + Account Balance chart · Settings (idioma + tema).
+- **Migración de infra (hecha)**: Supabase → **Neon** (Postgres, driver por env) + **Better Auth** (email/contraseña) + storage S3 (**MinIO** dev / **Cloudflare R2** prod).
 - **Fase 2**: Start My Day (prep + checklist + progress) + Evaluador Pre-Trade · Daily Journal / Notebook.
 - **Fase 3**: Reports avanzados (overview, Day & Time, Symbols, Risk, Compare) · Trade detail con gráfico.
 - **Fase 4**: Registro abierto de usuarios + panel super_admin (gestión de usuarios y `max_accounts`) · (opcional) auto-import de fills desde Bitget/Bitunix vía Vercel Cron.
-- **Fase 5**: Deploy a Vercel + Supabase cloud; mover storage a Cloudflare R2 si las capturas superan el free tier.
+- **Fase 5**: Deploy a Vercel + Neon + Cloudflare R2.
 
 ---
 
@@ -423,4 +437,4 @@ export async function createTrade(prev, formData) {
 - Dinero en `numeric`/decimal (no float); fechas UTC en BD.
 - Imágenes: solo path en BD, archivo en bucket, subida tras interfaz abstracta.
 - Todo string de UI en `messages/{es,en}.json`.
-- Toda tabla con datos de usuario protegida por RLS + validación de ownership en el server action.
+- Todo acceso a datos de usuario filtrado/validado por ownership en el server layer (no hay RLS en Neon).

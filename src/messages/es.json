@@ -264,7 +264,7 @@
   },
   "scaffold": {
     "title": "Fase 0 — Scaffold listo",
-    "description": "Next.js, Tailwind, shadcn/ui, Drizzle, Supabase, i18n y theming configurados. Listo para construir la Fase 1.",
+    "description": "Next.js, Tailwind, shadcn/ui, Drizzle, Neon, Better Auth, i18n y theming configurados. Listo para construir la Fase 1.",
     "themeToggle": "Cambiar tema",
     "localeLabel": "Idioma"
   }

@@ -1,9 +1,10 @@
 "use server";
 
 import { eq } from "drizzle-orm";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
-import { createSupabaseServerClient } from "@/lib/auth/server";
+import { auth } from "@/lib/auth";
 import { db } from "@/lib/db/client";
 import { defaultLocale, routing, type Locale } from "@/lib/i18n/routing";
 import { users } from "@/lib/db/schema";
@@ -23,13 +24,13 @@ export async function signIn(
     return { error: "missing_credentials" };
   }
 
-  const supabase = await createSupabaseServerClient();
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email,
-    password,
-  });
-
-  if (error || !data.user) {
+  // `nextCookies()` (plugin de Better Auth) escribe la cookie de sesión aquí.
+  try {
+    await auth.api.signInEmail({
+      body: { email, password },
+      headers: await headers(),
+    });
+  } catch {
     return { error: "invalid_credentials" };
   }
 
@@ -37,7 +38,7 @@ export async function signIn(
   const [profile] = await db
     .select({ locale: users.locale })
     .from(users)
-    .where(eq(users.id, data.user.id))
+    .where(eq(users.email, email))
     .limit(1);
   const target = routing.locales.includes(
     profile?.locale as (typeof routing.locales)[number],
@@ -49,7 +50,6 @@ export async function signIn(
 }
 
 export async function signOut(locale: Locale = defaultLocale) {
-  const supabase = await createSupabaseServerClient();
-  await supabase.auth.signOut();
+  await auth.api.signOut({ headers: await headers() });
   redirect(`/${locale}/login`);
 }

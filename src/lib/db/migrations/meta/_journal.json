@@ -5,29 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1782759085435,
-      "tag": "0000_init_schema",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1782759248796,
-      "tag": "0001_auth_rls_seed",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1782769997612,
-      "tag": "0002_storage_bucket",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1782873418371,
-      "tag": "0003_trade_strategy_timeframe",
+      "when": 1782928070354,
+      "tag": "0000_loud_carnage",
       "breakpoints": true
     }
   ]

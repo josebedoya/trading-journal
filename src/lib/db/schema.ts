@@ -7,11 +7,13 @@
  * - Todo se llavea por `account_id`; la cuenta cuelga del usuario.
  * - Las métricas de rendimiento salen SOLO de `trades` (transactions aparte).
  *
- * Las políticas RLS y el trigger auth.users → public.users se añaden en el
- * slice de auth (migración custom de Drizzle).
+ * Auth: Better Auth (email/password). El adaptador Drizzle usa las tablas
+ * `users`, `sessions`, `auth_accounts` y `verifications` (ver §5 más abajo).
+ * No hay RLS: la propiedad (ownership) se valida en cada server action (§11).
  */
 import { relations, sql } from "drizzle-orm";
 import {
+  boolean,
   date,
   integer,
   jsonb,
@@ -52,10 +54,16 @@ const money = { precision: 20, scale: 8 } as const; // P&L, precios, montos
 const ratio = { precision: 12, scale: 4 } as const; // R:R, leverage, %
 
 /* ──────────────────────────────── users ──────────────────────────────── */
-// id = auth.users.id de Supabase (mismo uuid).
+// Tabla de identidad de Better Auth (`user`) + perfil de dominio.
+// El uuid lo genera Better Auth (advanced.database.generateId = "uuid").
 export const users = pgTable("users", {
   id: uuid("id").primaryKey(),
   email: text("email").notNull().unique(),
+  // Campos requeridos por Better Auth:
+  name: text("name").notNull().default(""),
+  emailVerified: boolean("email_verified").notNull().default(false),
+  image: text("image"),
+  // Perfil de dominio:
   role: userRole("role").notNull().default("user"),
   maxAccounts: integer("max_accounts").notNull().default(1),
   locale: text("locale").notNull().default("es"),
@@ -65,6 +73,9 @@ export const users = pgTable("users", {
     .notNull()
     .default(sql`'{}'::uuid[]`),
   createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
 });
@@ -258,12 +269,84 @@ export const journalEntries = pgTable("journal_entries", {
     .defaultNow(),
 });
 
+/* ───────────────────── Better Auth (auth tables) ─────────────────────── */
+// Tablas gestionadas por Better Auth vía el adaptador Drizzle.
+// `account` se mapea a `auth_accounts` para no chocar con las cuentas de
+// trading (`accounts`). Los uuid los genera Better Auth (generateId "uuid").
+
+export const sessions = pgTable("sessions", {
+  id: uuid("id").primaryKey(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  token: text("token").notNull().unique(),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  ipAddress: text("ip_address"),
+  userAgent: text("user_agent"),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
+// Credenciales / providers de auth (aquí vive el hash de la contraseña).
+export const authAccounts = pgTable("auth_accounts", {
+  id: uuid("id").primaryKey(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  accountId: text("account_id").notNull(),
+  providerId: text("provider_id").notNull(),
+  accessToken: text("access_token"),
+  refreshToken: text("refresh_token"),
+  accessTokenExpiresAt: timestamp("access_token_expires_at", {
+    withTimezone: true,
+  }),
+  refreshTokenExpiresAt: timestamp("refresh_token_expires_at", {
+    withTimezone: true,
+  }),
+  scope: text("scope"),
+  idToken: text("id_token"),
+  password: text("password"),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
+export const verifications = pgTable("verifications", {
+  id: uuid("id").primaryKey(),
+  identifier: text("identifier").notNull(),
+  value: text("value").notNull(),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
 /* ──────────────────────────── relations ──────────────────────────────── */
 
 export const usersRelations = relations(users, ({ many }) => ({
   accounts: many(accounts),
   setups: many(setups),
   tags: many(tags),
+  sessions: many(sessions),
+  authAccounts: many(authAccounts),
+}));
+
+export const sessionsRelations = relations(sessions, ({ one }) => ({
+  user: one(users, { fields: [sessions.userId], references: [users.id] }),
+}));
+
+export const authAccountsRelations = relations(authAccounts, ({ one }) => ({
+  user: one(users, { fields: [authAccounts.userId], references: [users.id] }),
 }));
 
 export const accountsRelations = relations(accounts, ({ one, many }) => ({

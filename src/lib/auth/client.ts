@@ -1,9 +1,10 @@
-import { createBrowserClient } from "@supabase/ssr";
+import { createAuthClient } from "better-auth/react";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+/**
+ * Cliente de Better Auth para componentes `'use client'`.
+ * (El login actual usa un server action; este cliente queda disponible para
+ * flujos de auth desde el navegador.)
+ */
+export const authClient = createAuthClient();
 
-/** Cliente Supabase para componentes `'use client'`. */
-export function createSupabaseBrowserClient() {
-  return createBrowserClient(supabaseUrl, supabaseAnonKey);
-}
+export const { signIn, signOut, signUp, useSession } = authClient;

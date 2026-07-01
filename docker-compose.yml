@@ -1,7 +1,24 @@
 # Infra de desarrollo local (reemplaza el stack de Supabase).
-# - postgres: se añade en la fase de migración de DB.
-# - minio: almacenamiento S3-compatible para dev (en la nube: Cloudflare R2).
+# - db:    Postgres para Drizzle/Better Auth. Misma versión mayor que Neon (17)
+#          para que dev y prod sean idénticos. En la nube: Neon.
+# - minio: almacenamiento S3-compatible para dev. En la nube: Cloudflare R2.
 services:
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: trading_journal
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d trading_journal"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
   minio:
     image: minio/minio:latest
     command: server /data --console-address ":9001"
@@ -20,4 +37,5 @@ services:
       retries: 5
 
 volumes:
+  db_data:
   minio_data:
