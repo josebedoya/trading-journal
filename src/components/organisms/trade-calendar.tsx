@@ -82,7 +82,7 @@ export async function TradeCalendar({
         <p className="text-sm font-medium first-letter:uppercase">
           {monthLabel}
         </p>
-        <div className="flex items-center gap-2 text-xs">
+        <div className="flex items-center gap-2 text-sm">
           <span className="text-muted-foreground">{t("monthlyStats")}</span>
           <span className={cn("font-semibold tabular-nums", netClass(monthNet))}>
             {formatMoney(monthNet)}
@@ -127,7 +127,7 @@ function WeekRow({
         <div
           key={i}
           className={cn(
-            "flex min-h-20 flex-col rounded-md border p-1.5",
+            "flex min-h-26 flex-col rounded-md border p-1.5",
             cell == null && "border-transparent",
             cell?.stat && cell.stat.net > 0 && "border-win/30 bg-win/10",
             cell?.stat && cell.stat.net < 0 && "border-loss/30 bg-loss/10",
@@ -136,23 +136,23 @@ function WeekRow({
         >
           {cell && (
             <>
-              <span className="text-right text-[10px] text-muted-foreground">
+              <span className="text-right text-xs text-muted-foreground">
                 {cell.day}
               </span>
               {cell.stat && (
-                <div className="mt-auto text-center leading-tight">
+                <div className="mt-auto text-end leading-tight">
                   <p
                     className={cn(
-                      "text-xs font-semibold tabular-nums",
+                      "text-lg font-semibold tabular-nums",
                       netClass(cell.stat.net),
                     )}
                   >
                     {formatMoney(cell.stat.net)}
                   </p>
-                  <p className="text-[10px] text-muted-foreground">
+                  <p className="text-xs text-muted-foreground">
                     {t("tradesCount", { count: cell.stat.trades })}
                   </p>
-                  <p className="text-[10px] text-muted-foreground tabular-nums">
+                  <p className="text-xs text-muted-foreground tabular-nums">
                     {((cell.stat.wins / cell.stat.trades) * 100).toFixed(1)}%
                   </p>
                 </div>
@@ -162,14 +162,14 @@ function WeekRow({
         </div>
       ))}
 
-      <div className="flex min-h-20 flex-col justify-center gap-1 rounded-md border bg-muted/30 px-3 py-2">
-        <p className="text-[11px] text-muted-foreground">
+      <div className="flex min-h-26 flex-col justify-center gap-1 rounded-md border bg-muted/30 px-3 py-2">
+        <p className="text-sm text-muted-foreground">
           {t("week", { number: weekNumber })}
         </p>
-        <p className={cn("text-sm font-semibold tabular-nums", netClass(weekNet))}>
+        <p className={cn("text-xl font-semibold tabular-nums", netClass(weekNet))}>
           {formatMoney(weekNet)}
         </p>
-        <span className="w-fit rounded-md bg-muted px-2 py-0.5 text-[10px] text-muted-foreground">
+        <span className="w-fit rounded-md bg-muted px-2 py-0.5 text-xs text-muted-foreground">
           {t("daysCount", { count: daysTraded })}
         </span>
       </div>
