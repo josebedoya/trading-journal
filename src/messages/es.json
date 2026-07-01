@@ -9,7 +9,8 @@
     "invalidNumber": "Debe ser un número válido.",
     "invalidDate": "Fecha inválida.",
     "invalidId": "Identificador inválido.",
-    "notOwned": "La cuenta seleccionada no es válida."
+    "notOwned": "La cuenta seleccionada no es válida.",
+    "positiveAmount": "El monto debe ser un número positivo."
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -42,7 +43,8 @@
       "account_required": "Selecciona una cuenta válida.",
       "type_required": "Selecciona el tipo.",
       "invalid_amount": "El monto debe ser un número positivo.",
-      "invalid_date": "Fecha inválida."
+      "invalid_date": "Fecha inválida.",
+      "unexpected": "No se pudo guardar. Inténtalo de nuevo."
     }
   },
   "trades": {
@@ -205,7 +207,8 @@
       "name_required": "El nombre es obligatorio.",
       "invalid_balance": "Balance inicial inválido.",
       "quota_reached": "Alcanzaste el límite de cuentas activas. Archiva una para liberar cupo.",
-      "not_found": "Cuenta no encontrada."
+      "not_found": "Cuenta no encontrada.",
+      "unexpected": "No se pudo guardar. Inténtalo de nuevo."
     }
   },
   "auth": {

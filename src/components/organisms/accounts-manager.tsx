@@ -1,8 +1,13 @@
 "use client";
 
-import { useRef, useState, useTransition } from "react";
-import { useFormStatus } from "react-dom";
-import { useActionState } from "react";
+import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
+import { useState, useTransition } from "react";
+import {
+  FormProvider,
+  useForm,
+  useFormContext,
+  type UseFormReturn,
+} from "react-hook-form";
 import { useTranslations } from "next-intl";
 
 import { AccountChip } from "@/components/molecules/account-chip";
@@ -23,16 +28,22 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { formatMoney } from "@/lib/money";
-import type { AccountState } from "@/server/actions/accounts";
+import {
+  accountSchema,
+  type AccountFormInput,
+  type AccountInput,
+} from "@/lib/validations/account";
+import type { AccountActionResult } from "@/server/actions/accounts";
 
-type FormAction = (
-  state: AccountState,
-  formData: FormData,
-) => Promise<AccountState>;
-type ToggleAction = (id: string) => Promise<AccountState>;
+type CreateAction = (input: AccountInput) => Promise<AccountActionResult>;
+type UpdateAction = (
+  id: string,
+  input: AccountInput,
+) => Promise<AccountActionResult>;
+type ToggleAction = (id: string) => Promise<AccountActionResult>;
 
 type Account = {
   id: string;
@@ -43,61 +54,83 @@ type Account = {
   status: "active" | "archived";
 };
 
-const emptyState: AccountState = { error: null };
+/** Vuelca los errores del server (claves i18n) al formulario RHF. */
+function applyErrors(
+  form: UseFormReturn<AccountFormInput, unknown, AccountInput>,
+  res: Extract<AccountActionResult, { ok: false }>,
+) {
+  for (const [name, msgs] of Object.entries(res.fieldErrors ?? {})) {
+    if (msgs?.[0]) form.setError(name as keyof AccountFormInput, { message: msgs[0] });
+  }
+  if (res.formError) form.setError("root", { message: res.formError });
+}
 
-function Fields({ account }: { account?: Account }) {
-  const t = useTranslations("accounts");
+/** Input de texto enlazado a RHF + error i18n bajo el primitivo Field. */
+function TextField({
+  name,
+  label,
+  placeholder,
+  freeText,
+  className,
+}: {
+  name: keyof AccountFormInput;
+  label: string;
+  placeholder?: string;
+  freeText?: boolean;
+  className?: string;
+}) {
+  const { register, formState } = useFormContext<AccountFormInput>();
+  const tv = useTranslations();
+  const error = formState.errors[name];
+  return (
+    <Field data-invalid={!!error} className={className}>
+      <FieldLabel htmlFor={name}>{label}</FieldLabel>
+      <Input
+        id={name}
+        inputMode={freeText ? "text" : "decimal"}
+        placeholder={placeholder}
+        aria-invalid={!!error}
+        {...register(name)}
+      />
+      <FieldError>
+        {error?.message ? tv(error.message as string) : null}
+      </FieldError>
+    </Field>
+  );
+}
+
+function FormFields() {
+  const t = useTranslations("accounts.fields");
   return (
     <div className="grid gap-4 sm:grid-cols-2">
-      <div className="space-y-2 sm:col-span-2">
-        <Label htmlFor="name">{t("fields.name")}</Label>
-        <Input id="name" name="name" defaultValue={account?.name} required />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="exchange">{t("fields.exchange")}</Label>
-        <Input
-          id="exchange"
-          name="exchange"
-          defaultValue={account?.exchange ?? ""}
-          placeholder={t("fields.exchangePlaceholder")}
-        />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="currency">{t("fields.currency")}</Label>
-        <Input
-          id="currency"
-          name="currency"
-          defaultValue={account?.currency ?? "USD"}
-        />
-      </div>
-      <div className="space-y-2 sm:col-span-2">
-        <Label htmlFor="startingBalance">{t("fields.startingBalance")}</Label>
-        <Input
-          id="startingBalance"
-          name="startingBalance"
-          inputMode="decimal"
-          defaultValue={account?.startingBalance ?? "0"}
-        />
-      </div>
+      <TextField name="name" label={t("name")} freeText className="sm:col-span-2" />
+      <TextField
+        name="exchange"
+        label={t("exchange")}
+        placeholder={t("exchangePlaceholder")}
+        freeText
+      />
+      <TextField name="currency" label={t("currency")} freeText />
+      <TextField
+        name="startingBalance"
+        label={t("startingBalance")}
+        className="sm:col-span-2"
+      />
     </div>
   );
 }
 
-function SubmitButton({ label }: { label: string }) {
-  const { pending } = useFormStatus();
-  return (
-    <Button type="submit" disabled={pending}>
-      {label}
-    </Button>
-  );
-}
-
-function ErrorText({ error }: { error: string | null }) {
-  const t = useTranslations("accounts");
-  if (!error) return null;
+function RootError({
+  form,
+}: {
+  form: UseFormReturn<AccountFormInput, unknown, AccountInput>;
+}) {
+  const tv = useTranslations();
+  const msg = form.formState.errors.root?.message;
+  if (!msg) return null;
   return (
     <p className="text-sm text-destructive" role="alert">
-      {t(`errors.${error}`)}
+      {tv(msg)}
     </p>
   );
 }
@@ -107,18 +140,22 @@ function CreateForm({
   createAction,
 }: {
   disabled: boolean;
-  createAction: FormAction;
+  createAction: CreateAction;
 }) {
   const t = useTranslations("accounts");
-  const formRef = useRef<HTMLFormElement>(null);
-  const [state, action] = useActionState(
-    async (prev: AccountState, fd: FormData) => {
-      const res = await createAction(prev, fd);
-      if (res.ok) formRef.current?.reset();
-      return res;
-    },
-    emptyState,
-  );
+  const form = useForm<AccountFormInput, unknown, AccountInput>({
+    resolver: standardSchemaResolver(accountSchema),
+    defaultValues: { name: "", exchange: "", currency: "USD", startingBalance: "0" },
+  });
+
+  const onSubmit = form.handleSubmit(async (data) => {
+    const res = await createAction(data);
+    if (res.ok) {
+      form.reset();
+      return;
+    }
+    applyErrors(form, res);
+  });
 
   return (
     <Card>
@@ -130,11 +167,15 @@ function CreateForm({
         {disabled ? (
           <p className="text-sm text-muted-foreground">{t("errors.quota_reached")}</p>
         ) : (
-          <form ref={formRef} action={action} className="space-y-4">
-            <Fields />
-            <ErrorText error={state.error} />
-            <SubmitButton label={t("create.submit")} />
-          </form>
+          <FormProvider {...form}>
+            <form onSubmit={onSubmit} className="space-y-4">
+              <FormFields />
+              <RootError form={form} />
+              <Button type="submit" disabled={form.formState.isSubmitting}>
+                {t("create.submit")}
+              </Button>
+            </form>
+          </FormProvider>
         )}
       </CardContent>
     </Card>
@@ -146,18 +187,28 @@ function EditDialog({
   updateAction,
 }: {
   account: Account;
-  updateAction: FormAction;
+  updateAction: UpdateAction;
 }) {
   const t = useTranslations("accounts");
   const [open, setOpen] = useState(false);
-  const [state, action] = useActionState(
-    async (prev: AccountState, fd: FormData) => {
-      const res = await updateAction(prev, fd);
-      if (res.ok) setOpen(false);
-      return res;
+  const form = useForm<AccountFormInput, unknown, AccountInput>({
+    resolver: standardSchemaResolver(accountSchema),
+    defaultValues: {
+      name: account.name,
+      exchange: account.exchange ?? "",
+      currency: account.currency,
+      startingBalance: account.startingBalance,
     },
-    emptyState,
-  );
+  });
+
+  const onSubmit = form.handleSubmit(async (data) => {
+    const res = await updateAction(account.id, data);
+    if (res.ok) {
+      setOpen(false);
+      return;
+    }
+    applyErrors(form, res);
+  });
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -171,14 +222,17 @@ function EditDialog({
           <DialogTitle>{t("edit.title")}</DialogTitle>
           <DialogDescription>{account.name}</DialogDescription>
         </DialogHeader>
-        <form action={action} className="space-y-4">
-          <input type="hidden" name="id" value={account.id} />
-          <Fields account={account} />
-          <ErrorText error={state.error} />
-          <DialogFooter>
-            <SubmitButton label={t("edit.submit")} />
-          </DialogFooter>
-        </form>
+        <FormProvider {...form}>
+          <form onSubmit={onSubmit} className="space-y-4">
+            <FormFields />
+            <RootError form={form} />
+            <DialogFooter>
+              <Button type="submit" disabled={form.formState.isSubmitting}>
+                {t("edit.submit")}
+              </Button>
+            </DialogFooter>
+          </form>
+        </FormProvider>
       </DialogContent>
     </Dialog>
   );
@@ -227,8 +281,8 @@ export function AccountsManager({
   activeCount: number;
   maxAccounts: number;
   isAdmin: boolean;
-  createAction: FormAction;
-  updateAction: FormAction;
+  createAction: CreateAction;
+  updateAction: UpdateAction;
   archiveAction: ToggleAction;
   unarchiveAction: ToggleAction;
 }) {

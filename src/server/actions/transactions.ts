@@ -2,12 +2,16 @@
 
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+import { z } from "zod";
 
-import { requireUser } from "@/lib/auth/current-user";
+import { getCurrentUser, requireUser } from "@/lib/auth/current-user";
 import { db } from "@/lib/db/client";
+import { transactionSchema } from "@/lib/validations/transaction";
 import { accounts, transactions } from "@/lib/db/schema";
 
-export type TransactionState = { error: string | null; ok?: boolean };
+export type TransactionActionResult =
+  | { ok: true }
+  | { ok: false; fieldErrors?: Record<string, string[]>; formError?: string };
 
 async function ownsAccount(accountId: string, userId: string, isAdmin: boolean) {
   const [acc] = await db
@@ -20,38 +24,31 @@ async function ownsAccount(accountId: string, userId: string, isAdmin: boolean) 
 }
 
 export async function createTransaction(
-  _prev: TransactionState,
-  formData: FormData,
-): Promise<TransactionState> {
-  const user = await requireUser();
+  input: unknown,
+): Promise<TransactionActionResult> {
+  const user = await getCurrentUser();
+  if (!user) return { ok: false, formError: "transactions.errors.unexpected" };
   const isAdmin = user.profile.role === "super_admin";
 
-  const accountId = String(formData.get("accountId") ?? "");
-  const type = String(formData.get("type") ?? "");
-  const occurredAtRaw = String(formData.get("occurredAt") ?? "").trim();
-  const amountRaw = String(formData.get("amount") ?? "").trim().replace(",", ".");
-  const note = String(formData.get("note") ?? "").trim() || null;
+  const parsed = transactionSchema.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false, fieldErrors: z.flattenError(parsed.error).fieldErrors };
+  }
+  const data = parsed.data;
 
-  if (!(await ownsAccount(accountId, user.profile.id, isAdmin)))
-    return { error: "account_required" };
-  if (type !== "deposit" && type !== "withdrawal")
-    return { error: "type_required" };
-  if (!/^\d+(\.\d+)?$/.test(amountRaw) || Number(amountRaw) <= 0)
-    return { error: "invalid_amount" };
-
-  const occurredAt = occurredAtRaw ? new Date(occurredAtRaw) : new Date();
-  if (Number.isNaN(occurredAt.getTime())) return { error: "invalid_date" };
+  if (!(await ownsAccount(data.accountId, user.profile.id, isAdmin)))
+    return { ok: false, fieldErrors: { accountId: ["validation.notOwned"] } };
 
   await db.insert(transactions).values({
-    accountId,
-    type,
-    amount: amountRaw,
-    occurredAt,
-    note,
+    accountId: data.accountId,
+    type: data.type,
+    amount: String(data.amount), // positivo; el signo lo da `type`
+    occurredAt: data.occurredAt ?? new Date(),
+    note: data.note ?? null,
   });
 
   revalidatePath("/", "layout");
-  return { error: null, ok: true };
+  return { ok: true };
 }
 
 export async function deleteTransaction(id: string): Promise<void> {

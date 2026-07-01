@@ -1,8 +1,14 @@
 "use client";
 
-import { useRef, useState, useTransition } from "react";
-import { useActionState } from "react";
-import { useFormStatus } from "react-dom";
+import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
+import { useTransition } from "react";
+import {
+  Controller,
+  FormProvider,
+  useForm,
+  useFormContext,
+  type UseFormReturn,
+} from "react-hook-form";
 import { useLocale, useTranslations } from "next-intl";
 
 import { Button } from "@/components/ui/button";
@@ -12,8 +18,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -22,12 +28,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { formatMoney } from "@/lib/money";
-import type { TransactionState } from "@/server/actions/transactions";
+import {
+  transactionSchema,
+  type TransactionFormInput,
+  type TransactionInput,
+} from "@/lib/validations/transaction";
+import type { TransactionActionResult } from "@/server/actions/transactions";
 
-type CreateAction = (
-  state: TransactionState,
-  formData: FormData,
-) => Promise<TransactionState>;
+type CreateAction = (input: TransactionInput) => Promise<TransactionActionResult>;
 type DeleteAction = (id: string) => Promise<void>;
 
 type AccountOpt = { id: string; name: string };
@@ -41,22 +49,91 @@ type Tx = {
   currency: string;
 };
 
-function SubmitButton({ label }: { label: string }) {
-  const { pending } = useFormStatus();
+function applyErrors(
+  form: UseFormReturn<TransactionFormInput, unknown, TransactionInput>,
+  res: Extract<TransactionActionResult, { ok: false }>,
+) {
+  for (const [name, msgs] of Object.entries(res.fieldErrors ?? {})) {
+    if (msgs?.[0])
+      form.setError(name as keyof TransactionFormInput, { message: msgs[0] });
+  }
+  if (res.formError) form.setError("root", { message: res.formError });
+}
+
+function TextField({
+  name,
+  label,
+  type = "text",
+  freeText,
+  className,
+}: {
+  name: keyof TransactionFormInput;
+  label: string;
+  type?: string;
+  freeText?: boolean;
+  className?: string;
+}) {
+  const { register, formState } = useFormContext<TransactionFormInput>();
+  const tv = useTranslations();
+  const error = formState.errors[name];
   return (
-    <Button type="submit" disabled={pending}>
-      {label}
-    </Button>
+    <Field data-invalid={!!error} className={className}>
+      <FieldLabel htmlFor={name}>{label}</FieldLabel>
+      <Input
+        id={name}
+        type={type}
+        inputMode={freeText || type !== "text" ? undefined : "decimal"}
+        aria-invalid={!!error}
+        {...register(name)}
+      />
+      <FieldError>
+        {error?.message ? tv(error.message as string) : null}
+      </FieldError>
+    </Field>
   );
 }
 
-function DeleteButton({
-  id,
-  onDelete,
+function SelectField({
+  name,
+  label,
+  options,
 }: {
-  id: string;
-  onDelete: DeleteAction;
+  name: keyof TransactionFormInput;
+  label: string;
+  options: { value: string; label: string }[];
 }) {
+  const { control, formState } = useFormContext<TransactionFormInput>();
+  const tv = useTranslations();
+  const error = formState.errors[name];
+  return (
+    <Field data-invalid={!!error}>
+      <FieldLabel>{label}</FieldLabel>
+      <Controller
+        control={control}
+        name={name}
+        render={({ field }) => (
+          <Select value={(field.value as string) ?? ""} onValueChange={field.onChange}>
+            <SelectTrigger aria-invalid={!!error}>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {options.map((o) => (
+                <SelectItem key={o.value} value={o.value}>
+                  {o.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
+      />
+      <FieldError>
+        {error?.message ? tv(error.message as string) : null}
+      </FieldError>
+    </Field>
+  );
+}
+
+function DeleteButton({ id, onDelete }: { id: string; onDelete: DeleteAction }) {
   const t = useTranslations("transactions");
   const [pending, startTransition] = useTransition();
   return (
@@ -68,6 +145,71 @@ function DeleteButton({
     >
       {t("delete")}
     </Button>
+  );
+}
+
+function CreateForm({
+  accounts,
+  createAction,
+}: {
+  accounts: AccountOpt[];
+  createAction: CreateAction;
+}) {
+  const t = useTranslations("transactions");
+  const tv = useTranslations();
+  const form = useForm<TransactionFormInput, unknown, TransactionInput>({
+    resolver: standardSchemaResolver(transactionSchema),
+    defaultValues: {
+      accountId: accounts[0]?.id ?? "",
+      type: "deposit",
+      amount: "",
+      occurredAt: "",
+      note: "",
+    },
+  });
+
+  const onSubmit = form.handleSubmit(async (data) => {
+    const res = await createAction(data);
+    if (res.ok) {
+      form.reset();
+      return;
+    }
+    applyErrors(form, res);
+  });
+
+  const rootError = form.formState.errors.root?.message;
+
+  return (
+    <FormProvider {...form}>
+      <form onSubmit={onSubmit} className="grid gap-4 sm:grid-cols-2">
+        <SelectField
+          name="accountId"
+          label={t("account")}
+          options={accounts.map((a) => ({ value: a.id, label: a.name }))}
+        />
+        <SelectField
+          name="type"
+          label={t("type")}
+          options={[
+            { value: "deposit", label: t("types.deposit") },
+            { value: "withdrawal", label: t("types.withdrawal") },
+          ]}
+        />
+        <TextField name="amount" label={t("amount")} />
+        <TextField name="occurredAt" label={t("occurredAt")} type="date" />
+        <TextField name="note" label={t("note")} freeText className="sm:col-span-2" />
+        {rootError && (
+          <p className="text-sm text-destructive sm:col-span-2" role="alert">
+            {tv(rootError)}
+          </p>
+        )}
+        <div className="sm:col-span-2">
+          <Button type="submit" disabled={form.formState.isSubmitting}>
+            {t("submit")}
+          </Button>
+        </div>
+      </form>
+    </FormProvider>
   );
 }
 
@@ -84,20 +226,6 @@ export function TransactionsManager({
 }) {
   const t = useTranslations("transactions");
   const locale = useLocale();
-  const formRef = useRef<HTMLFormElement>(null);
-  const [type, setType] = useState("deposit");
-  const [state, action] = useActionState(
-    async (prev: TransactionState, fd: FormData) => {
-      const res = await createAction(prev, fd);
-      if (res.ok) {
-        formRef.current?.reset();
-        setType("deposit");
-      }
-      return res;
-    },
-    { error: null } as TransactionState,
-  );
-
   const dateFmt = new Intl.DateTimeFormat(locale, { dateStyle: "medium" });
 
   return (
@@ -110,57 +238,7 @@ export function TransactionsManager({
           {accounts.length === 0 ? (
             <p className="text-sm text-muted-foreground">{t("noAccounts")}</p>
           ) : (
-            <form ref={formRef} action={action} className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <Label>{t("account")}</Label>
-                <Select name="accountId" defaultValue={accounts[0]?.id}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {accounts.map((a) => (
-                      <SelectItem key={a.id} value={a.id}>
-                        {a.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label>{t("type")}</Label>
-                <Select name="type" value={type} onValueChange={setType}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="deposit">{t("types.deposit")}</SelectItem>
-                    <SelectItem value="withdrawal">
-                      {t("types.withdrawal")}
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="amount">{t("amount")}</Label>
-                <Input id="amount" name="amount" inputMode="decimal" required />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="occurredAt">{t("occurredAt")}</Label>
-                <Input id="occurredAt" name="occurredAt" type="date" />
-              </div>
-              <div className="space-y-2 sm:col-span-2">
-                <Label htmlFor="note">{t("note")}</Label>
-                <Input id="note" name="note" />
-              </div>
-              {state.error && (
-                <p className="text-sm text-destructive sm:col-span-2" role="alert">
-                  {t(`errors.${state.error}`)}
-                </p>
-              )}
-              <div className="sm:col-span-2">
-                <SubmitButton label={t("submit")} />
-              </div>
-            </form>
+            <CreateForm accounts={accounts} createAction={createAction} />
           )}
         </CardContent>
       </Card>

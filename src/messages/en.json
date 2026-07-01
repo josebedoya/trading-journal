@@ -9,7 +9,8 @@
     "invalidNumber": "Must be a valid number.",
     "invalidDate": "Invalid date.",
     "invalidId": "Invalid identifier.",
-    "notOwned": "The selected account is not valid."
+    "notOwned": "The selected account is not valid.",
+    "positiveAmount": "Amount must be a positive number."
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -42,7 +43,8 @@
       "account_required": "Select a valid account.",
       "type_required": "Select the type.",
       "invalid_amount": "Amount must be a positive number.",
-      "invalid_date": "Invalid date."
+      "invalid_date": "Invalid date.",
+      "unexpected": "Could not save. Please try again."
     }
   },
   "trades": {
@@ -205,7 +207,8 @@
       "name_required": "Name is required.",
       "invalid_balance": "Invalid starting balance.",
       "quota_reached": "You reached your active accounts limit. Archive one to free a slot.",
-      "not_found": "Account not found."
+      "not_found": "Account not found.",
+      "unexpected": "Could not save. Please try again."
     }
   },
   "auth": {

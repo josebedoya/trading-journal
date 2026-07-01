@@ -2,21 +2,17 @@
 
 import { and, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+import { z } from "zod";
 
-import { requireUser } from "@/lib/auth/current-user";
+import { getCurrentUser } from "@/lib/auth/current-user";
 import { db } from "@/lib/db/client";
+import { accountSchema } from "@/lib/validations/account";
 import { accounts } from "@/lib/db/schema";
 
-export type AccountState = { error: string | null; ok?: boolean };
-
-const ok: AccountState = { error: null, ok: true };
-
-function parseMoney(raw: string): string | null {
-  const v = raw.trim().replace(",", ".");
-  if (v === "") return "0";
-  if (!/^-?\d+(\.\d+)?$/.test(v)) return null;
-  return v;
-}
+/** Resultado tipado (mismo patrón que trades): éxito o errores mapeables. */
+export type AccountActionResult =
+  | { ok: true }
+  | { ok: false; fieldErrors?: Record<string, string[]>; formError?: string };
 
 /** Cuenta cuántas cuentas activas tiene el usuario (para la cuota). */
 async function activeAccountCount(userId: string): Promise<number> {
@@ -39,71 +35,74 @@ async function ownedAccount(accountId: string, userId: string, isAdmin: boolean)
 }
 
 export async function createAccount(
-  _prev: AccountState,
-  formData: FormData,
-): Promise<AccountState> {
-  const user = await requireUser();
+  input: unknown,
+): Promise<AccountActionResult> {
+  const user = await getCurrentUser();
+  if (!user) return { ok: false, formError: "accounts.errors.unexpected" };
   const isAdmin = user.profile.role === "super_admin";
 
-  const name = String(formData.get("name") ?? "").trim();
-  const exchange = String(formData.get("exchange") ?? "").trim() || null;
-  const currency = String(formData.get("currency") ?? "USD").trim() || "USD";
-  const startingBalance = parseMoney(String(formData.get("startingBalance") ?? "0"));
-
-  if (!name) return { error: "name_required" };
-  if (startingBalance === null) return { error: "invalid_balance" };
+  const parsed = accountSchema.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false, fieldErrors: z.flattenError(parsed.error).fieldErrors };
+  }
+  const data = parsed.data;
 
   // Cuota: solo cuentas activas cuentan; super_admin sin límite.
   if (!isAdmin) {
     const count = await activeAccountCount(user.profile.id);
-    if (count >= user.profile.maxAccounts) return { error: "quota_reached" };
+    if (count >= user.profile.maxAccounts)
+      return { ok: false, formError: "accounts.errors.quota_reached" };
   }
 
   await db.insert(accounts).values({
     userId: user.profile.id,
-    name,
-    exchange,
-    currency,
-    startingBalance,
+    name: data.name,
+    exchange: data.exchange ?? null,
+    currency: data.currency,
+    startingBalance: String(data.startingBalance),
   });
 
   revalidatePath("/", "layout");
-  return ok;
+  return { ok: true };
 }
 
 export async function updateAccount(
-  _prev: AccountState,
-  formData: FormData,
-): Promise<AccountState> {
-  const user = await requireUser();
+  id: string,
+  input: unknown,
+): Promise<AccountActionResult> {
+  const user = await getCurrentUser();
+  if (!user) return { ok: false, formError: "accounts.errors.unexpected" };
   const isAdmin = user.profile.role === "super_admin";
-  const id = String(formData.get("id") ?? "");
 
   const acc = await ownedAccount(id, user.profile.id, isAdmin);
-  if (!acc) return { error: "not_found" };
+  if (!acc) return { ok: false, formError: "accounts.errors.not_found" };
 
-  const name = String(formData.get("name") ?? "").trim();
-  const exchange = String(formData.get("exchange") ?? "").trim() || null;
-  const currency = String(formData.get("currency") ?? "USD").trim() || "USD";
-  const startingBalance = parseMoney(String(formData.get("startingBalance") ?? "0"));
-
-  if (!name) return { error: "name_required" };
-  if (startingBalance === null) return { error: "invalid_balance" };
+  const parsed = accountSchema.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false, fieldErrors: z.flattenError(parsed.error).fieldErrors };
+  }
+  const data = parsed.data;
 
   await db
     .update(accounts)
-    .set({ name, exchange, currency, startingBalance })
+    .set({
+      name: data.name,
+      exchange: data.exchange ?? null,
+      currency: data.currency,
+      startingBalance: String(data.startingBalance),
+    })
     .where(eq(accounts.id, id));
 
   revalidatePath("/", "layout");
-  return ok;
+  return { ok: true };
 }
 
-export async function archiveAccount(id: string): Promise<AccountState> {
-  const user = await requireUser();
+export async function archiveAccount(id: string): Promise<AccountActionResult> {
+  const user = await getCurrentUser();
+  if (!user) return { ok: false, formError: "accounts.errors.unexpected" };
   const isAdmin = user.profile.role === "super_admin";
   const acc = await ownedAccount(id, user.profile.id, isAdmin);
-  if (!acc) return { error: "not_found" };
+  if (!acc) return { ok: false, formError: "accounts.errors.not_found" };
 
   await db
     .update(accounts)
@@ -111,23 +110,27 @@ export async function archiveAccount(id: string): Promise<AccountState> {
     .where(eq(accounts.id, id));
 
   revalidatePath("/", "layout");
-  return ok;
+  return { ok: true };
 }
 
-export async function unarchiveAccount(id: string): Promise<AccountState> {
-  const user = await requireUser();
+export async function unarchiveAccount(
+  id: string,
+): Promise<AccountActionResult> {
+  const user = await getCurrentUser();
+  if (!user) return { ok: false, formError: "accounts.errors.unexpected" };
   const isAdmin = user.profile.role === "super_admin";
   const acc = await ownedAccount(id, user.profile.id, isAdmin);
-  if (!acc) return { error: "not_found" };
+  if (!acc) return { ok: false, formError: "accounts.errors.not_found" };
 
   // Reactivar consume un cupo → re-valida cuota.
   if (!isAdmin) {
     const count = await activeAccountCount(user.profile.id);
-    if (count >= user.profile.maxAccounts) return { error: "quota_reached" };
+    if (count >= user.profile.maxAccounts)
+      return { ok: false, formError: "accounts.errors.quota_reached" };
   }
 
   await db.update(accounts).set({ status: "active" }).where(eq(accounts.id, id));
 
   revalidatePath("/", "layout");
-  return ok;
+  return { ok: true };
 }
