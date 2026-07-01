@@ -46,6 +46,8 @@ export default async function EditTradePage({
             riskAmount: tr.riskAmount,
             session: tr.session,
             setupId: tr.setupId,
+            strategy: tr.strategy,
+            timeframe: tr.timeframe,
             notes: tr.notes,
           }}
         />

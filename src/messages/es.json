@@ -105,6 +105,9 @@
       "plannedRr": "R:R planeado",
       "realizedRr": "R:R realizado",
       "riskAmount": "Riesgo ($)",
+      "strategy": "Estrategia",
+      "timeframe": "Temporalidad",
+      "timeframePlaceholder": "15m, 4H, Daily",
       "setup": "Setup",
       "noSetup": "Sin setup",
       "notes": "Notas",
@@ -152,6 +155,8 @@
       "plannedRr": "R:R planeado",
       "realizedRr": "R:R realizado",
       "riskAmount": "Riesgo",
+      "strategy": "Estrategia",
+      "timeframe": "Temporalidad",
       "notes": "Notas",
       "screenshots": "Capturas"
     }

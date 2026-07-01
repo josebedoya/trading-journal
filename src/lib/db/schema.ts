@@ -146,6 +146,8 @@ export const trades = pgTable("trades", {
     () => preTradeEvaluations.id,
     { onDelete: "set null" },
   ),
+  strategy: text("strategy"),
+  timeframe: text("timeframe"),
   notes: text("notes"),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()

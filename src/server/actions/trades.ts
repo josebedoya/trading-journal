@@ -68,6 +68,8 @@ function toInsertValues(
     riskAmount: money(data.riskAmount),
     session: data.session ?? null,
     setupId: data.setupId ?? null,
+    strategy: data.strategy ?? null,
+    timeframe: data.timeframe ?? null,
     notes: data.notes ?? null,
   };
 }

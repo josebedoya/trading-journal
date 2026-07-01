@@ -22,6 +22,13 @@
       "when": 1782769997612,
       "tag": "0002_storage_bucket",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1782873418371,
+      "tag": "0003_trade_strategy_timeframe",
+      "breakpoints": true
     }
   ]
 }

@@ -71,6 +71,8 @@ export type TradeDefaults = {
   riskAmount: string | null;
   session: string | null;
   setupId: string | null;
+  strategy: string | null;
+  timeframe: string | null;
   notes: string | null;
 };
 
@@ -105,6 +107,8 @@ function buildDefaults(
       riskAmount: trade.riskAmount ?? "",
       session: trade.session ?? "none",
       setupId: trade.setupId ?? "none",
+      strategy: trade.strategy ?? "",
+      timeframe: trade.timeframe ?? "",
       notes: trade.notes ?? "",
     };
   }
@@ -122,6 +126,8 @@ function buildDefaults(
     riskAmount: "",
     session: "none",
     setupId: "none",
+    strategy: "",
+    timeframe: "",
     notes: "",
   };
 }
@@ -132,11 +138,13 @@ function TextField({
   label,
   type = "text",
   placeholder,
+  freeText,
 }: {
   name: keyof TradeFormInput;
   label: string;
   type?: string;
   placeholder?: string;
+  freeText?: boolean;
 }) {
   const { register, formState } = useFormContext<TradeFormInput>();
   const tv = useTranslations();
@@ -147,7 +155,7 @@ function TextField({
       <Input
         id={name}
         type={type}
-        inputMode={type === "text" ? "decimal" : undefined}
+        inputMode={freeText ? "text" : type === "text" ? "decimal" : undefined}
         placeholder={placeholder}
         aria-invalid={!!error}
         {...register(name)}
@@ -288,6 +296,13 @@ export function TradeForm({
             <TextField name="fees" label={t("fees")} />
             <TextField name="realizedRr" label={t("realizedRr")} />
             <TextField name="riskAmount" label={t("riskAmount")} />
+            <TextField name="strategy" label={t("strategy")} freeText />
+            <TextField
+              name="timeframe"
+              label={t("timeframe")}
+              placeholder={t("timeframePlaceholder")}
+              freeText
+            />
             {setups.length > 0 && (
               <SelectField
                 name="setupId"

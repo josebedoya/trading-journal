@@ -10,7 +10,8 @@ import { z } from "zod";
  * - Optatividad espejada del schema Drizzle (`trades`) y del formulario.
  *   Requeridos: accountId, symbol, direction, openedAt, entryPrice, exitPrice,
  *               grossPnl.
- *   Opcionales:  closedAt, realizedRr, riskAmount, session, setupId, notes.
+ *   Opcionales:  closedAt, realizedRr, riskAmount, session, setupId,
+ *                strategy, timeframe, notes.
  *   `fees` es opcional con default 0 (igual que `numeric notNull default '0'`).
  *   Nota: quantity, leverage y plannedRr ya no se capturan en el form (sus
  *   columnas se conservan en BD como legacy/nullable).
@@ -83,6 +84,8 @@ export const tradeSchema = z.object({
     z.uuid({ error: "validation.invalidId" }).optional(),
   ),
 
+  strategy: z.preprocess(blankToUndefined, z.string().trim().optional()),
+  timeframe: z.preprocess(blankToUndefined, z.string().trim().optional()),
   notes: z.preprocess(blankToUndefined, z.string().trim().optional()),
 });
 

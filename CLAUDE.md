@@ -145,6 +145,8 @@ Todo se llavea por `account_id`; la cuenta cuelga del usuario. Las métricas de 
 | session | enum('asia','london','newyork','overlap','other') | |
 | setup_id | uuid FK → setups | nullable |
 | evaluation_id | uuid FK → pre_trade_evaluations | nullable (link al evaluador) |
+| strategy | text | nullable — estrategia (texto libre) |
+| timeframe | text | nullable — temporalidad (texto libre, ej. "15m", "4H") |
 | notes | text | |
 | created_at / updated_at | timestamptz | |
 
@@ -300,7 +302,7 @@ Capas presentacionales (atoms/molecules/organisms) sin BD ni server actions: rec
 ## 8. Funcionalidades (mapeadas a TradeZella)
 
 - **Dashboard**: `KpiCardRow` + `PerformanceRadar` (Trade Score) + `ProgressHeatmap` + `EquityCurveChart` + `TradeCalendar` (totales semanales) + `AccountBalanceChart` + recent trades.
-- **Trades**: tabla (open/close date, symbol, status, entry/exit, net P&L, **R realizado** destacado y **Return %** secundario) + alta/edición manual con subida de capturas + filtros por periodo/resultado/cuenta. El formulario captura entry/exit (requeridos), gross P&L, fees, R:R realizado, riesgo, sesión, setup y notas (quantity, leverage y R:R planeado fueron removidos).
+- **Trades**: tabla (open/close date, symbol, status, entry/exit, net P&L, **R realizado** destacado y **Return %** secundario) + alta/edición manual con subida de capturas + filtros por periodo/resultado/cuenta. El formulario captura entry/exit (requeridos), gross P&L, fees, R:R realizado, riesgo, sesión, setup, **estrategia**, **temporalidad** y notas (quantity, leverage y R:R planeado fueron removidos).
 - **Trade detail**: stats del trade + notas + capturas (+ gráfico, fase posterior).
 - **Start My Day**: prep diario con plantilla + `PreTradeEvaluator` + checklist diario que alimenta el progress tracker.
 - **Daily Journal / Notebook**: entradas por día con plantillas, carpetas y tags.

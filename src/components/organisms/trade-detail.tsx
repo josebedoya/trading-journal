@@ -48,6 +48,8 @@ export async function TradeDetail({
     [t("account"), account.name],
     [t("direction"), t(`directions.${trade.direction}`)],
     [t("session"), trade.session ? t(`sessions.${trade.session}`) : "—"],
+    [t("strategy"), trade.strategy ?? "—"],
+    [t("timeframe"), trade.timeframe ?? "—"],
     [t("opened"), dateFmt.format(new Date(trade.openedAt))],
     [t("closed"), trade.closedAt ? dateFmt.format(new Date(trade.closedAt)) : "—"],
     [t("holdTime"), fmtHold(holdTimeMs(trade.openedAt, trade.closedAt))],
